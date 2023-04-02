@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .responsive {
+          max-width: 100%;
+          height: auto;
+        }
+        .column {
+            float: left;
+            max-width: 50%;
+            padding: 10px;
+        }
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        footer {
+            text-align: right;
+            background-color: rgb(115, 138, 118);
+            color: white;
+        }
+        input[type=submit], input[type="reset"]{
+            text-decoration: none;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100px;}
+        
+    </style>
+    <title>Document</title>
+</head>
+<body>
+    <table width="100%">
+        <tr>
+          <td width="30%" align="left">
+            <a href="https://www.smithquaaf.com/">
+                <img src="https://static.wixstatic.com/media/6384cb_7cc6f906914340b9a48db70681ee036c~mv2.png/v1/crop/x_0,y_2,w_1370,h_608/fill/w_290,h_129,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/QUAFF-logo-colour_3x.png" 
+                alt="Image" width="50%" height="50%">
+            </a>
+          </td>
+          <td width="40%" align="center" valign="bottom">
+            <h1 style="margin: 0;">Portfolio Optimizer</h1>
+          </td>
+          <td width="30%" align="right" valign="bottom">
+            <form method="get" action="{{ url_for('main') }}" id="main">
+                <input type="submit" value="Return to main page" style="float:right;width: 150px; height: 30px; font-size:15px; margin_bottom:100px"/>
+            </form>
+          </td>
+        </tr>
+      </table>
+    <hr>
+
+    <form method="post" action="{{ url_for('operation_result') }}" id="calculator_form">
+        <label for="Tickers">Tickers (Formate: AAA, BBB, CCC or AAA BBB CCC):</label>
+        <br/>
+        <input type="text" name="Tickers" id="Tickers" size="100" value={{default_tickers}}>
+        <br/>
+        <label for="Track_back_years:">Track Back (years):</label>
+        <br/>
+        <input type="number" name="Track_back_years" id="Track_back_years" value={{default_track_back_years}}>
+        <br/>
+        <label for="rf_rate">Risk Free Rate (Default as 3 Month Treasury Bill Rate):</label>
+        <br/>
+        <input type="number" step="any" name="rf_rate" id="rf_rate" value={{default_rfr}}>
+        <br/>
+        <input type="submit" value="SUBMIT"/>
+    </form>
+    {% if calculation_success == True %}
+        <div class="row" style="background-color:#9cb3a2;">
+            <div class="column">
+                <h2>Cumulative Returns</h2>
+                <img src="data:image/png;base64,{{ cumulative_returns }}" class="responsive" />
+            </div>
+            <div class="column">
+                <h2>Return Facts</h2>
+                <h3>Mean Returns</h3>
+                {{ mean_return|safe }}
+                <h3>Risk Matrix</h3>
+                {{ cov_returns|safe }}
+            </div>
+        </div>
+        <br/>
+        <div class="row" style="background-color:#8d9b93;">
+            <div class="column">
+                <h2>Efficient Frontier</h2>
+                <img src="data:image/png;base64,{{ efficient_frontier }}" alt="Nature" class="responsive" />
+            </div>
+            <div class="column">
+                <h2>Portfolio Allocations and Performance</h2>
+                <h3>Highest Sharpe Ratio</h3>
+                {{ bsr_weight|safe }}
+                {{ bsr_perf|safe }}
+                <h3>Lowest Volatility</h3>
+                {{ mv_weight|safe }}
+                {{ mv_perf|safe }}
+            </div>
+        </div>
+        
+    {% endif %}
+    {% if calculation_success == False %}
+        <br/>
+        <p>{{error}}</p>
+    {% endif %}
+    <div>
+    <hr>
+    <footer>
+        <p>Author: Minxiang Liu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; lminxiang@gmail.com</p>
+        <p>Queen's University Alternative Assets Fund (QUAAF)<br></p>
+    </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {font-family: "Lato", sans-serif;}
+
+.tablink {
+  background-color: #555;
+  color: white;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 17px;
+  width: 25%;
+}
+
+.tablink:hover {
+  background-color: #777;
+}
+
+/* Style the tab content */
+.tabcontent {
+  color: white;
+  display: flex;
+  padding: 50px;
+  text-align: center;
+  margin-top: 30px;
+  vertical-align: middle
+}
+
+#Home {background-color:#66ac6a;}
+#Ready {background-color:#66ac6a;}
+#Developping {background-color:#757373;}
+#Feedback {background-color:#66ac6a;}
+
+footer {
+  text-align: right;
+  background-color: rgb(115, 138, 118);
+  color: white;
+}
+
+input[type=submit]{
+  border: none;
+  padding: 16px 32px;
+  text-decoration: none;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 5px;
+  width: 250px;
+  border:#757373
+}
+
+</style>
+</head>
+<body>
+  <table width="100%">
+    <tr>
+      <td width="30%" align="left">
+        <a href="https://www.smithquaaf.com/">
+          <img src="https://static.wixstatic.com/media/6384cb_7cc6f906914340b9a48db70681ee036c~mv2.png/v1/crop/x_0,y_2,w_1370,h_608/fill/w_290,h_129,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/QUAFF-logo-colour_3x.png" 
+          alt="Image" width="50%" height="50%">
+        </a>
+      </td>
+      <td width="40%" align="center" valign="bottom">
+        <h1 style="margin: 0;">QUAAF Toolkit</h1>
+      </td>
+      <td width="30%"></td>
+    </tr>
+  </table>
+<hr>
+<button class="tablink" onclick="openCity('Home', this, '#66ac6a')" id="defaultOpen">Home</button>
+<button class="tablink" onclick="openCity('Ready', this, '#66ac6a')">Ready to use</button>
+<button class="tablink" onclick="openCity('Developping', this, '#757373')">In Progress</button>
+<button class="tablink" onclick="openCity('Feedback', this, '#66ac6a')">Need more tools?</button>
+
+<div id="Home" class="tabcontent">
+  <h3>This toolkit portal is designed for QUAAF internal usage!</h3>
+  <img src="{{url_for('static', filename='Presentation1.jpg')}}" alt="Intro 1"  style="width:70%;height:70%;">
+  <img src="{{url_for('static', filename='Presentation2.jpg')}}" alt="Intro 2"  style="width:70%;height:70%;">
+  <img src="{{url_for('static', filename='Presentation3.jpg')}}" alt="Intro 3"  style="width:70%;height:70%;">
+  <br>
+  <a href="https://github.com/snbmm/QUAAF_Predictive_Modelling"> Github link</a>
+  <a href="https://dev.azure.com/QUAAF/_git/Data"> Azure link</a>
+</div>
+
+<div id="Ready" class="tabcontent">
+  <form method="get" action="{{ url_for('init_portfolio_optimizer') }}" id="portfolio_optimizer_form">
+    <input type="submit" value="Portfolio Optimizer" style = "font-size:20px"/>
+  </form>
+</div>
+
+<div id="Developping" class="tabcontent">
+  <form method="get" action="{{ url_for('main') }}" id="stock_forecasting_form">
+    <input type="submit" value="Stock Forecasting" style = "font-size:20px" disabled/>
+  </form>
+  <form method="get" action="{{ url_for('main') }}" id="valuation_model_form">
+    <input type="submit" value="Valuation Model" style = "font-size:20px" disabled/>
+  </form>
+  <form method="get" action="{{ url_for('main') }}" id="more_form">
+    <input type="submit" value="..." style = "font-size:20px" disabled/>
+  </form>
+</div>
+
+<div id="Feedback" class="tabcontent">
+  <textarea id="suggestions" name="suggestions" rows="6" cols="50" style = "font-size:15px">
+    This function is under development, please contact the data team directly for your suggestions. Thank you!</textarea>
+    <br>
+    <input type="submit" value="Submit" style = "font-size:20px; border: solid; border-color: #e7e7e7" disabled>    
+</div>
+<hr>
+<footer>
+  <p>Author: Minxiang Liu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; lminxiang@gmail.com</p>
+  <p>Queen's University Alternative Assets Fund (QUAAF)<br></p>
+</footer>
+
+<script>
+  function openCity(cityName,elmnt,color) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablink");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].style.backgroundColor = "";
+    }
+    document.getElementById(cityName).style.display = "block";
+    elmnt.style.backgroundColor = color;
+  
+  }
+  // Get the element with id="defaultOpen" and click on it
+  document.getElementById("defaultOpen").click();
+</script>
+
+</body>
+</html>
