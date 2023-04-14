@@ -90,15 +90,16 @@ input[type=submit]{
   <form method="get" action="{{ url_for('init_portfolio_optimizer') }}" id="portfolio_optimizer_form">
     <input type="submit" value="Portfolio Optimizer" style = "font-size:20px"/>
   </form>
+  <form method="get" action="{{ url_for('init_probailistic_valuator') }}" id="valuation_model_form">
+    <input type="submit" value="Valuation Model" style = "font-size:20px"/>
+  </form>
 </div>
 
 <div id="Developping" class="tabcontent">
   <form method="get" action="{{ url_for('main') }}" id="stock_forecasting_form">
     <input type="submit" value="Stock Forecasting" style = "font-size:20px" disabled/>
   </form>
-  <form method="get" action="{{ url_for('main') }}" id="valuation_model_form">
-    <input type="submit" value="Valuation Model" style = "font-size:20px" disabled/>
-  </form>
+
   <form method="get" action="{{ url_for('main') }}" id="more_form">
     <input type="submit" value="..." style = "font-size:20px" disabled/>
   </form>

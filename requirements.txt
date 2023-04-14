@@ -9,3 +9,5 @@ pyportfolioopt==1.5.4
 scikit-learn==1.2.2
 gunicorn
 gevent
+yahooquery
+requests_cache

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {font-family: "Lato", sans-serif;}
+        .tablink {
+            background-color: #555;
+            color: white;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            font-size: 17px;
+            width: 50%;
+        }
+
+        .tablink:hover {
+          background-color: #777;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+          color: white;
+          display: flex;
+          padding: 50px;
+          text-align: center;
+          margin-top: 30px;
+          vertical-align: middle
+        }
+
+        #WACC {background-color:#66ac6a;}
+        #SIMULATION {background-color:#66ac6a;}
+        #More {background-color:#757373;}
+
+        .responsive {
+          max-width: 100%;
+          height: auto;
+        }
+        .column {
+            float: left;
+            max-width: 49%;
+            padding: 10px;
+        }
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        footer {
+            text-align: right;
+            background-color: rgb(115, 138, 118);
+            color: white;
+        }
+        input[type=submit], input[type="reset"]{
+            text-decoration: none;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 200px;}
+        
+    </style>
+    <title>Document</title>
+</head>
+<body>
+    <table width="100%">
+        <tr>
+          <td width="30%" align="left">
+            <a href="https://www.smithquaaf.com/">
+                <img src="https://static.wixstatic.com/media/6384cb_7cc6f906914340b9a48db70681ee036c~mv2.png/v1/crop/x_0,y_2,w_1370,h_608/fill/w_290,h_129,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/QUAFF-logo-colour_3x.png" 
+                alt="Image" width="50%" height="50%">
+            </a>
+          </td>
+          <td width="40%" align="center" valign="bottom">
+            <h1 style="margin: 0;">Probabilistic Valuation</h1>
+          </td>
+          <td width="30%" align="right" valign="bottom">
+            <form method="get" action="{{ url_for('main') }}" id="main">
+                <input type="submit" value="Return to main page" style="float:right;width: 150px; height: 30px; font-size:15px; margin_bottom:100px"/>
+            </form>
+          </td>
+        </tr>
+      </table>
+    <hr>
+    <div class="row" style="background-color:#9cb3a2; padding: 20px" align="center">
+        <h2>DCF with EBIT Exit model</h2>
+        <div class="column" align="left" style="max-width: 45%; padding-left: 30px">
+            <h3>Formulas</h3>
+            <h4>Intrinsic Value = Σ FCF / (1 + r) ^ t</h4>
+            <h4>Present Value of TV = Final Year EBIT x Exit Multiple ÷ (1 + Discount Rate) ^ Years</h4>
+            <h4>Estimated Stock Price = (Intrinsic Value + Present Value of TV) ÷ Outstanding Shares</h4>
+        </div>
+        <div class="column" align="left" style="max-width: 45%; padding-left: 30px">
+            <h3>Limitations</h3>
+            <p>1. Uncertainty of future cash flow projections
+                <br/>2. Forecasting errors can lead to significant discrepancies
+                <br/>3. Challenges in selecting an appropriate discount rate
+                <br/>4. Assumptions about terminal values can lead to large differences in intrinsic value
+                <br/>5. Potential for an incomplete analysis due to reliance on analyst input.</p>
+        </div>
+    </div>
+    <button class="tablink" onclick="openCity('WACC', this, '#66ac6a')" {% if default_tab == "wacc" %}id="defaultOpen"{% endif %}>
+        Step 1: Calculate WACC</button>
+    <button class="tablink" onclick="openCity('SIMULATION', this, '#66ac6a')" {% if default_tab == "sim" %}id="defaultOpen"{% endif %}>
+        Step 2: Evaluate Simulation</button>
+
+    <div id="WACC" class="tabcontent">
+        <form method="post" action="{{ url_for('operation_wacc') }}" id="calculator_form">
+            <div class="row" style="background-color:#9cb3a2;" align="left">
+                <div class="column">
+                    <label for="Ticker">Ticker (Format: AAPL):</label>
+                    <br/>
+                    <input type="text" name="Ticker" id="Ticker" value={{default_ticker}}>
+                    <br/>
+                    <label for="risk_free_rate_ticker">Risk Free Rate Ticker (Format: ^TNX):</label>
+                    <br/>
+                    <input type="text" name="rfr_Ticker" id="rfr_Ticker" value={{default_rfr_ticker}}>
+                    <br/>
+                    <label for="market_return_rate">Market Return Rate (Default as S&P500 30 years average):</label>
+                    <br/>
+                    <input type="number" step="any" name="market_return_rate" id="market_return_rate" value={{default_market_return_rate}}>
+                    <br/>
+                    <label for="rd_reinvest">Consider R&D as reinvestment:  </label>
+                    <input type="checkbox" name="rd_reinvest" id="rd_reinvest" {% if default_rd_reinvest %}checked{% endif %}>
+                    <br/>
+                    <label for="intang_as_da">Consider Intangibles Amortization as D&A:  </label>
+                    <input type="checkbox" name="intang_as_da" id="intang_as_da" {% if default_intang_as_da %}checked{% endif %}>
+                </div>
+                <div class="column">
+                    <label for="Beta">Stock beta:</label>
+                    <br/>
+                    <input type="number" step="any" name="beta" id="beta" value={{default_beta}} disabled>
+                    <br/>
+                    <label for="risk_free_rate">Risk Free Rate:</label>
+                    <br/>
+                    <input type="number" step="any" name="risk_free_rate" id="risk_free_rate" value={{default_risk_free_rate}}  disabled>
+                    <br/>
+                    <label for="wacc">WACC:  </label>
+                    <br/>
+                    <input type="number" step="any" name="wacc" id="wacc" value={{default_wacc}} disabled>
+                    <br/>
+                    <label for="wacc_std">WACC Standard Deviation:  </label>
+                    <br/>
+                    <input type="number" step="any" name="wacc_std" id="wacc_std" value={{default_wacc_std}} disabled>
+                </div>
+            </div>
+            <br/>
+            <input type="submit" value="Calculate WACC"/>
+        </form>
+    {% if calculation_wacc_success == True %}
+        <h2>Fundamentals</h2>
+        {{ fundamentals|safe }}
+        <div class="row" style="background-color:#9cb3a2;">
+            <div class="column">
+                <h2>WACC distribution</h2>
+                <img src="data:image/png;base64,{{ wacc_dist }}" class="responsive" />
+            </div>
+            <div class="column" align="left">
+                <h2>Calculation explain</h2>
+                {{ wacc_explain|safe }}
+            </div>
+        </div>
+        <br/>
+    {% endif %}
+    {% if calculation_wacc_success == False %}
+        <br/>
+        <p>{{error}}</p>
+    {% endif %}</div>
+
+    <div id="SIMULATION" class="tabcontent">
+        <form method="post" action="{{ url_for('operation_simulation') }}" id="calculator_form">
+            <div class="row" style="background-color:#9cb3a2;" align="left">
+                <div class="column">
+                    <label for="Ticker">Ticker (Format: AAPL):</label>
+                    <br/>
+                    <input type="text" name="Ticker" id="Ticker" value={{default_ticker}}>
+                    <br/>
+                    <label for="risk_free_rate_ticker">Risk Free Rate Ticker (Format: ^TNX):</label>
+                    <br/>
+                    <input type="text" name="rfr_Ticker" id="rfr_Ticker" value={{default_rfr_ticker}}>
+                    <br/>
+                    <label for="market_return_rate">Market Return Rate (Default as S&P500 30 years average):</label>
+                    <br/>
+                    <input type="number" step="any" name="market_return_rate" id="market_return_rate" value={{default_market_return_rate}}>
+                    <br/>
+                    <label for="t_years">Terminal years:</label>
+                    <br/>
+                    <input type="number" name="t_years" id="t_years" value={{default_t_years}}>
+                    <br/>
+                    <label for="rd_reinvest">Consider R&D as reinvestment:  </label>
+                    <input type="checkbox" name="rd_reinvest" id="rd_reinvest" {% if default_rd_reinvest %}checked{% endif %}>
+                    <br/>
+                    <label for="intang_as_da">Consider Intangibles Amortization as D&A:  </label>
+                    <input type="checkbox" name="intang_as_da" id="intang_as_da" {% if default_intang_as_da %}checked{% endif %}>
+                </div>
+                <div class="column">
+                    <label for="Beta">Stock beta:</label>
+                    <br/>
+                    <input type="number" step="any" name="beta" id="beta" value={{default_beta}} disabled>
+                    <br/>
+                    <label for="risk_free_rate">Risk Free Rate:</label>
+                    <br/>
+                    <input type="number" step="any" name="risk_free_rate" id="risk_free_rate" value={{default_risk_free_rate}}  disabled>
+                    <br/>
+                    <label for="wacc">WACC:  </label>
+                    <br/>
+                    <input type="number" step="any" name="wacc" id="wacc" value={{default_wacc}} disabled>
+                    <br/>
+                    <label for="wacc_std">WACC Standard Deviation:  </label>
+                    <br/>
+                    <input type="number" step="any" name="wacc_std" id="wacc_std" value={{default_wacc_std}} disabled>
+                    <p><sub>* Reinvestment rate is clipped at range [-0.5, 0.5]<br/>
+                        * EV/EBIT ratio is capped at 50x</sub></p>
+                </div>
+            </div>
+            <br/>
+            <input type="submit" value="Run simulation"/>
+        </form>
+
+        {% if simulation_success == True %}
+            <h2>Projection (mean value of 2000 iterations)</h2>
+            {{ FCFF_mean|safe }}
+            <div class="row" style="background-color:#9cb3a2;">
+                <div class="column">
+                    <h2>Evaluations</h2>
+                    <img src="data:image/png;base64,{{ price_dist }}" class="responsive" />
+                </div>
+                <div class="column" align="left">
+                    <h2>Calculation explain</h2>
+                    {{ pv_explain|safe }}
+                </div>
+            </div>
+            <br/>
+        {% endif %}
+        {% if simulation_success == False %}
+            <br/>
+            <p>{{error}}</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function openCity(cityName,elmnt,color) {
+          var i, tabcontent, tablinks;
+          tabcontent = document.getElementsByClassName("tabcontent");
+          for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+          }
+          tablinks = document.getElementsByClassName("tablink");
+          for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].style.backgroundColor = "";
+          }
+          document.getElementById(cityName).style.display = "block";
+          elmnt.style.backgroundColor = color;
+        
+        }
+        // Get the element with id="defaultOpen" and click on it
+        document.getElementById("defaultOpen").click();
+    </script>
+    <div>
+    <hr>
+    <footer>
+        <p>Author: Minxiang Liu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; lminxiang@gmail.com</p>
+        <p>Queen's University Alternative Assets Fund (QUAAF)<br></p>
+    </footer>
+    </div>
+</body>
+</html>

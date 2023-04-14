@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import yfinance as yf
+import yahooquery as yq
 from datetime import date
 from dateutil.relativedelta import relativedelta
 from matplotlib import rcParams
@@ -13,7 +14,7 @@ import io
 
 class Portfolio_Optimizer():
 
-    def __init__(self, tickers=[], track_back = 5, rf_rate = yf.download(tickers = '^IRX')['Adj Close'][-1]):
+    def __init__(self, tickers=[], track_back = 5, rf_rate = yq.Ticker('^TNX').history(period='1y')['adjclose'][-1]/100):
         """
         Configure the optimizer
         @param tickers: The tickers included in the portfolio
@@ -30,7 +31,7 @@ class Portfolio_Optimizer():
     
     @staticmethod
     def get_default_risk_free_rate():
-        return yf.download(tickers = '^IRX')['Adj Close'][-1]
+        return yf.download(tickers = '^TNX')['Adj Close'][-1]
     
     def visualize_cumulative_returns(self, is_html = False):
         """

@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request
 import pandas as pd
+import numpy as np
 from Portfolio_Optimization.Portfolio_Optimizer import Portfolio_Optimizer
+from probabilistic_Valuation_Model.probabilistic_valuator import Probabilistic_Valuator
 
 Flask_App = Flask(__name__) # Creating our Flask Instance
+pd.options.display.precision = 3
 
 @Flask_App.route('/', methods=['GET'])
 def main():
@@ -58,11 +61,141 @@ def operation_result():
             mv_perf = pd.DataFrame(results["Minimum Volatility"]["Performace"], index=[0]).to_html(index=False),
             calculation_success=True
         )
-        
     except ValueError as e:
         return render_template(
             'portfolio_optimizer.html',
             calculation_success=False,
+            error=e
+        )
+
+@Flask_App.route('/probailistic_valuator', methods=['GET'])
+def init_probailistic_valuator():
+    """ Displays the probailistic_valuator page accessible at '/probailistic_valuator' """
+    print(Probabilistic_Valuator.get_default_risk_free_rate())
+    return render_template('probailistic_valuator.html',
+                           default_tab = 'wacc',
+                           default_ticker = 'AAPL',
+                           default_rfr_ticker = '^TNX',
+                           default_risk_free_rate = Probabilistic_Valuator.get_default_risk_free_rate(),
+                           default_market_return_rate = Probabilistic_Valuator.get_default_market_return_rate(),
+                           default_t_years = 10,
+                           default_beta = Probabilistic_Valuator.get_default_beta('AAPL'),
+                           default_rd_reinvest = True,
+                           default_intang_as_da = False,
+                           default_wacc = 0.0,
+                           default_wacc_std = 0.0)
+
+@Flask_App.route('/probailistic_valuator/calculate_wacc', methods=['POST'])
+def operation_wacc():
+    """Route where we send results"""
+    # request.form looks for:
+    # html tags with matching "name= "
+    ticker_input = request.form['Ticker']  
+    rfr_Ticker = request.form['rfr_Ticker']
+    market_return_rate = float(request.form['market_return_rate'])
+    rd_reinvest = request.form.get('rd_reinvest')
+    intang_as_da = request.form.get('intang_as_da')
+
+    try:
+        pv = Probabilistic_Valuator(ticker = ticker_input, risk_free_rate_ticker = rfr_Ticker, 
+                                    market_return = market_return_rate, beta = None, 
+                                    rd_in_reinvest = rd_reinvest, intang_as_da = intang_as_da)
+        pv.get_wacc()
+
+        return render_template(
+            'probailistic_valuator.html',
+            default_tab = 'wacc',
+            default_ticker = pv.ticker,
+            default_rfr_ticker = pv.risk_free_rate_ticker,
+            default_risk_free_rate = pv.risk_free_rates[-1],
+            default_market_return_rate = pv.market_return,
+            default_t_years = pv.t_years,
+            default_beta = pv.beta,
+            default_rd_reinvest = pv.rd_in_reinvest,
+            default_intang_as_da = pv.intang_as_da,
+            fundamentals = pv.fundamentals.to_html(),
+            wacc_dist = pv.wacc[2],
+            wacc_explain = pv.wacc[3],
+            default_wacc = pv.wacc[0][0],
+            default_wacc_std = np.std(pv.wacc[0]),
+            calculation_wacc_success=True,
+            simulation_success = False
+        )
+    
+    except ValueError as e:
+        return render_template(
+            'probailistic_valuator.html',
+            default_tab = 'wacc',
+            default_ticker = pv.ticker,
+            default_rfr_ticker = pv.risk_free_rate_ticker,
+            default_risk_free_rate = pv.risk_free_rates[-1],
+            default_market_return_rate = pv.market_return,
+            default_t_years = pv.t_years,
+            default_beta = pv.beta,
+            default_rd_reinvest = pv.rd_in_reinvest,
+            default_intang_as_da = pv.intang_as_da,
+            calculation_wacc_success=False,
+            simulation_success = False,
+            error=e
+        )
+
+@Flask_App.route('/probailistic_valuator/run_sim', methods=['POST'])
+def operation_simulation():
+    """Route where we send results"""
+    ticker_input = request.form['Ticker']  
+    rfr_Ticker = request.form['rfr_Ticker']
+    market_return_rate = float(request.form['market_return_rate'])
+    t_years = int(request.form['t_years'])
+    rd_reinvest = request.form.get('rd_reinvest')
+    intang_as_da = request.form.get('intang_as_da')
+    try:
+        pv = Probabilistic_Valuator(ticker = ticker_input, risk_free_rate_ticker = rfr_Ticker, 
+                                    market_return = market_return_rate, beta = None, 
+                                    rd_in_reinvest = rd_reinvest, intang_as_da = intang_as_da)
+        [target_price, current_price, price_dist, FCFF_mean, pv_explain] = pv.run_simulations(t_intervals = t_years)
+
+        return render_template(
+            'probailistic_valuator.html',
+            default_tab = 'sim',
+            default_ticker = pv.ticker,
+            default_rfr_ticker = pv.risk_free_rate_ticker,
+            default_risk_free_rate = pv.risk_free_rates[-1],
+            default_market_return_rate = pv.market_return,
+            default_t_years = pv.t_years,
+            default_beta = pv.beta,
+            default_rd_reinvest = pv.rd_in_reinvest,
+            default_intang_as_da = pv.intang_as_da,
+            fundamentals = pv.fundamentals.to_html(),
+            wacc_dist = pv.wacc[2],
+            wacc_explain = pv.wacc[3],
+            default_wacc = pv.wacc[0][0],
+            default_wacc_std = np.std(pv.wacc[0]),
+            calculation_wacc_success=True,
+            FCFF_mean = FCFF_mean.to_html(),
+            price_dist = price_dist,
+            pv_explain = pv_explain,
+            simulation_success = True
+        )
+    
+    except Exception as e:
+        return render_template(
+            'probailistic_valuator.html',
+            default_tab = 'sim',
+            simulation_success=False,
+            default_ticker = pv.ticker,
+            default_rfr_ticker = pv.risk_free_rate_ticker,
+            default_risk_free_rate = pv.risk_free_rates[-1],
+            default_market_return_rate = pv.market_return,
+            default_t_years = pv.t_years,
+            default_beta = pv.beta,
+            default_rd_reinvest = pv.rd_in_reinvest,
+            default_intang_as_da = pv.intang_as_da,
+            fundamentals = pv.fundamentals.to_html(),
+            wacc_dist = pv.wacc[2],
+            wacc_explain = pv.wacc[3],
+            default_wacc = pv.wacc[0][0],
+            default_wacc_std = np.std(pv.wacc[0]),
+            calculation_wacc_success=True,
             error=e
         )
 
