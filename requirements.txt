@@ -11,3 +11,6 @@ gunicorn
 gevent
 yahooquery
 requests_cache
+BeautifulSoup4==4.12.2
+nltk
+scipy

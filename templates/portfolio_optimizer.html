@@ -31,17 +31,17 @@
             width: 100px;}
         
     </style>
-    <title>Document</title>
+    <title>Portfolio Optimizer</title>
 </head>
 <body>
     <table width="100%">
         <tr>
-          <td width="30%" align="left">
-            <a href="https://www.smithquaaf.com/">
-                <img src="https://static.wixstatic.com/media/6384cb_7cc6f906914340b9a48db70681ee036c~mv2.png/v1/crop/x_0,y_2,w_1370,h_608/fill/w_290,h_129,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/QUAFF-logo-colour_3x.png" 
-                alt="Image" width="50%" height="50%">
-            </a>
-          </td>
+            <td width="30%" align="left" valign="bottom">
+                <a href="https://www.smithquaaf.com/">
+                    <img src="https://static.wixstatic.com/media/6384cb_7cc6f906914340b9a48db70681ee036c~mv2.png/v1/crop/x_0,y_2,w_1370,h_608/fill/w_290,h_129,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/QUAFF-logo-colour_3x.png" 
+                    alt="Image" width="130" height="58">
+                </a>
+            </td>
           <td width="40%" align="center" valign="bottom">
             <h1 style="margin: 0;">Portfolio Optimizer</h1>
           </td>
@@ -53,22 +53,41 @@
         </tr>
       </table>
     <hr>
+    
+    <div class="row">
+        <div class="column" style="width: 46%; padding: 1% 2%">
+            <form method="post" action="{{ url_for('operation_result') }}" id="calculator_form">
+                <label for="Tickers">Tickers (Formate: AAA, BBB, CCC or AAA BBB CCC):</label>
+                <br/>
+                <textarea rows="5" cols="60" name="Tickers" id="Tickers">{{default_tickers}}</textarea>
+                <br/>
+                <br/>
+                <label for="Track_back_years:">Track Back (years):</label>
+                <br/>
+                <input type="number" name="Track_back_years" id="Track_back_years" value={{default_track_back_years}}>
+                <br/>
+                <br/>
+                <label for="rf_rate">Risk Free Rate (Default as 10 years treasury yield):</label>
+                <br/>
+                <input type="number" step="any" name="rf_rate" id="rf_rate" value={{default_rfr}}>
+                <br/>
+                <br/>
+                <input type="submit" value="SUBMIT"  style = "font-size:15px"/>
+            </form>
+        </div>
+        {% if calculation_success == True %}
+        <div class="column" style="width: 46%; padding: 1% 2%; background-color:#8d9b93;">
+            <h2>Sentimental Indicator</h2>
+            <img src="data:image/png;base64,{{ sentiments_plot }}" class="responsive" />
+            <a>Visit news page:&nbsp;&nbsp;</a>
+            {% for ticker in news_list[1]%}
+                <a href={{ news_list[0] + ticker}}>{{ticker}}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    <br/>
 
-    <form method="post" action="{{ url_for('operation_result') }}" id="calculator_form">
-        <label for="Tickers">Tickers (Formate: AAA, BBB, CCC or AAA BBB CCC):</label>
-        <br/>
-        <input type="text" name="Tickers" id="Tickers" size="100" value={{default_tickers}}>
-        <br/>
-        <label for="Track_back_years:">Track Back (years):</label>
-        <br/>
-        <input type="number" name="Track_back_years" id="Track_back_years" value={{default_track_back_years}}>
-        <br/>
-        <label for="rf_rate">Risk Free Rate (Default as 10 years treasury yield):</label>
-        <br/>
-        <input type="number" step="any" name="rf_rate" id="rf_rate" value={{default_rfr}}>
-        <br/>
-        <input type="submit" value="SUBMIT"/>
-    </form>
     {% if calculation_success == True %}
         <div class="row" style="background-color:#9cb3a2;">
             <div class="column">
@@ -99,11 +118,32 @@
                 {{ mv_perf|safe }}
             </div>
         </div>
+        <br/>
+        <h2 style="padding: 0 1%">Portfolio VaR</h2>
+        <div class="row" style="background-color:#9cb3a2;">
+            <h3 style="padding: 1% 2%">Best Sharpe Ratio Portfolio</h3>
+            <div class="column" style="width: 46%; padding: 1% 2%">
+                <img src="data:image/png;base64,{{ var_max_s[0] }}" alt="Nature" class="responsive" />
+            </div>
+            <div class="column" style="width: 46%; padding: 1% 2%">
+                <img src="data:image/png;base64,{{ var_max_s[1] }}" alt="Nature" class="responsive" />
+            </div>
+        </div>
+        <div class="row" style="background-color:#8d9b93;">
+            <h3 style="padding: 1% 2%">Minimum Volatility Portfolio</h3>
+            <div class="column" style="width: 46%; padding: 1% 2%">
+                <img src="data:image/png;base64,{{ var_min_v[0] }}" alt="Nature" class="responsive" />
+            </div>
+            <div class="column" style="width: 46%; padding: 1% 2%">
+                <img src="data:image/png;base64,{{ var_min_v[1] }}" alt="Nature" class="responsive" />
+            </div>
+        </div>
         
     {% endif %}
     {% if calculation_success == False %}
         <br/>
-        <p>{{error}}</p>
+        {{error | safe}}
+        <p>Please check if the tickers input ({{default_tickers}}) are correct</p>
     {% endif %}
     <div>
     <hr>

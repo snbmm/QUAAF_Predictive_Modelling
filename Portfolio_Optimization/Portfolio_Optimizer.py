@@ -37,7 +37,7 @@ class Portfolio_Optimizer():
         """
         Visualize the cumulative returns for all the tickers in the portfolio
         """
-        fig = plt.figure(figsize=(20, 10))
+        fig = plt.figure(figsize=(12, 7))
         rcParams.update({'font.size': 22})
         plt.plot((1 + self.data.pct_change()).cumprod() - 1, label = self.data.columns)
         plt.ylabel('Cumulative Returns')
@@ -95,6 +95,52 @@ class Portfolio_Optimizer():
                                                      "Annual volatility": perf_min_vol[1],
                                                      "Sharpe Ratio": perf_min_vol[2]}}}
     
+    def get_var(self, df_weights, tag = ''):
+        """
+        Return value at risk for given weight
+        """
+        a = self.data
+        df = pd.DataFrame(a.values.dot(df_weights.T)).pct_change().dropna()
+        VaR_90 = df.quantile(0.1).values[0]
+        VaR_95 = df.quantile(0.05).values[0]
+        VaR_99 = df.quantile(0.01).values[0]
+        fig = plt.figure(figsize=(12, 7))
+        plt.hist(df, bins=40)
+        plt.axvline(x=VaR_90, label = f'90% {VaR_90*100.:2f}%', linewidth = 2, linestyle = ':', color = 'red')
+        plt.axvline(x=VaR_95, label = f'95% {VaR_95*100.:2f}%', linewidth = 2, linestyle = '--', color = 'red')
+        plt.axvline(x=VaR_99, label = f'99% {VaR_99*100.:2f}%', linewidth = 2, linestyle = '-', color = 'red')
+        plt.xlabel('Returns')
+        plt.ylabel('Frequency')
+        plt.title(label = f"Daily VaR of {tag}")
+        plt.grid(True)
+        plt.legend()
+        img=io.BytesIO()
+        plt.savefig(img,format='png')
+        img.seek(0)
+        plot_url_1 = base64.b64encode(img.getvalue()).decode()
+
+        df = pd.DataFrame(a.values.dot(df_weights.T)).pct_change(periods=5).dropna()
+        VaR_90 = df.quantile(0.1).values[0]
+        VaR_95 = df.quantile(0.05).values[0]
+        VaR_99 = df.quantile(0.01).values[0]
+        fig = plt.figure(figsize=(12, 7))
+        plt.hist(df, bins=40)
+        plt.axvline(x=VaR_90, label = f'90% {VaR_90*100.:2f}%', linewidth = 2, linestyle = ':', color = 'red')
+        plt.axvline(x=VaR_95, label = f'95% {VaR_95*100.:2f}%', linewidth = 2, linestyle = '--', color = 'red')
+        plt.axvline(x=VaR_99, label = f'99% {VaR_99*100.:2f}%', linewidth = 2, linestyle = '-', color = 'red')
+        plt.xlabel('Returns')
+        plt.ylabel('Frequency')
+        plt.title(label = f"Weekly VaR of {tag}")
+        plt.grid(True)
+        plt.legend()
+        img=io.BytesIO()
+        plt.savefig(img,format='png')
+        img.seek(0)
+        plot_url_2 = base64.b64encode(img.getvalue()).decode()
+
+        return [plot_url_1, plot_url_2]
+
+
     def random_portfolios(self, num_portfolios = 100000):
         """
         Build random portfolios and return the performance results
@@ -127,7 +173,7 @@ class Portfolio_Optimizer():
         min_var_loc = int(np.where(results == results[0].min())[1])
         max_sharp_loc = int(np.where(results == results[2].max())[1])
         #Visualizing our results
-        fig = plt.figure(figsize=(20, 10))
+        fig = plt.figure(figsize=(12, 7))
         plt.scatter(x = results[0], y = results[1], c = results[2], marker='o')
         plt.xlabel('Expected volatility')
         plt.ylabel('Expected return')

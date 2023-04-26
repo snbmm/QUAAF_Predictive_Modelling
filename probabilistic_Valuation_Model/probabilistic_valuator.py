@@ -10,6 +10,7 @@ class Probabilistic_Valuator():
     def __init__(self, ticker, get_estimation = True, freq = 'a', 
                  risk_free_rate_ticker = None, market_return = None, 
                  beta = None, rd_in_reinvest = True, intang_as_da = False):
+                 
         self.ticker = ticker
         self.get_estimation = get_estimation
         self.risk_free_rate_ticker = risk_free_rate_ticker
@@ -32,7 +33,7 @@ class Probabilistic_Valuator():
         self.df_summary_detail = yq_ticker.summary_detail[ticker]
         self.rd_in_reinvest = rd_in_reinvest
         self.intang_as_da = intang_as_da
-        self.fundamentals = self.get_fundamentals(intang_as_da = self.intang_as_da)
+        [self.fundamentals, self.fundamentals_plot] = self.get_fundamentals(intang_as_da = self.intang_as_da)
         self.wacc = None
     
     @staticmethod
@@ -40,8 +41,8 @@ class Probabilistic_Valuator():
         return yq.Ticker(ticker).key_stats[ticker]['beta']
     
     @staticmethod
-    def get_default_risk_free_rate():
-        return yq.Ticker('^TNX').history(period='1y')['adjclose'][-1]/100
+    def get_default_risk_free_rate(ticker = '^TNX'):
+        return yq.Ticker(ticker).history(period='1y')['adjclose'][-1]/100
     
     @staticmethod
     def get_default_market_return_rate():
@@ -80,7 +81,28 @@ class Probabilistic_Valuator():
                                         'Reinvestment Rate', 'ROC', 'g']
         fundamentals.index.name = None
         fundamentals.index = fundamentals.index.strftime('%Y-%m-%d')
-        return fundamentals
+        
+        
+        #fig = fundamentals.plot(kind='bar',rot=0, colormap='jet',figsize=(12,7), subplots=True, layout=(4,3), legend = False, grid = True)
+        figure, axis = plt.subplots(1, 2, figsize=(12,4))
+        figure.tight_layout()
+        #axis[0] = fundamentals[['Revenue','Change in Working Capital', 'Capex', 'R&D', 'Depr. & Amort.', 'EBIT','EBIT (1-t)']].plot.bar(rot=0)
+        fundamentals.plot(kind='bar', y = ['Revenue','Change in Working Capital', 'Capex', 'R&D', 'Depr. & Amort.', 'EBIT','EBIT (1-t)'], ax=axis[0], rot = 0)
+        axis[0].set_yscale('log')
+        axis[0].legend(ncol=2)
+        axis[0].grid(True)
+        #axis[1] = fundamentals[['Effective Tax Rate', 'Reinvestment Rate', 'ROC', 'g']].plot.bar(rot=0)
+
+        fundamentals.plot(kind='bar', y = ['Effective Tax Rate', 'Reinvestment Rate', 'ROC', 'g'], ax=axis[1], rot = 0)
+        axis[1].legend(ncol=2)
+        axis[1].grid(True)
+
+        img=io.BytesIO()
+        plt.savefig(img,format='png')
+        img.seek(0)
+        plot_url = base64.b64encode(img.getvalue()).decode()
+
+        return [fundamentals, plot_url]
     
     def get_wacc(self, iteration = 5000, market_return = None, beta = None):
         """
@@ -186,6 +208,8 @@ class Probabilistic_Valuator():
             wacc_list.append(equity_weight * cost_of_equity_r + debt_weight * cost_of_debt_v)
             rates_list.append([risk_free_rate_r, interest_rate, tax_rate])
         fig = plt.figure(figsize=(6, 4))
+        fig.tight_layout()
+        plt.rcParams["figure.autolayout"] = True
         plt.xlabel(f'Estimated {self.ticker} WACC')
         plt.ylabel('Counts')
         plt.axvline(x=wacc_list[0], label = f'Current WACC {round(wacc_list[0],6)}', linewidth = 3, color = 'gray')
@@ -300,7 +324,17 @@ class Probabilistic_Valuator():
         print(equityValue)
         print(sharesOutstanding)
 
+        fig_df_result = df_result.T.plot(kind='bar',rot=45, colormap='jet',figsize=(12,6), subplots=True, layout=(2,2), legend = False, grid = True)
+        plt.rcParams["figure.autolayout"] = True
+        plt.grid()
+        plt.tight_layout()
+        img=io.BytesIO()
+        plt.savefig(img,format='png')
+        img.seek(0)
+        plot_url_1 = base64.b64encode(img.getvalue()).decode()
+
         fig = plt.figure(figsize=(6, 4))
+        plt.rcParams["figure.autolayout"] = True
         plt.xlabel(f'Estimated {self.ticker} Price $')
         plt.ylabel('Counts')
         plt.axvline(x=self.df_history[-1], label = f'Current Price ${self.df_history[-1]}', linewidth = 3, color = 'gray')
@@ -313,7 +347,7 @@ class Probabilistic_Valuator():
         img=io.BytesIO()
         plt.savefig(img,format='png')
         img.seek(0)
-        plot_url = base64.b64encode(img.getvalue()).decode()
+        plot_url_2 = base64.b64encode(img.getvalue()).decode()
         explain = f"WACC / Discount rate: {wacc[0]:.2f} \n Estimated EV/EBIT: {TerMulSim_mean:.2f}\n\n\
             Estimated Stock Value\n\
                  =  (Present value of FCF ({PV.sum():.2e}) \n\
@@ -330,7 +364,7 @@ class Probabilistic_Valuator():
             explain += f"<p style='color:Red;'><sub>* The EV/EBIT mean {def_ev_ebit_ratios[0].mean()} is capped at 50X </sub></p>"
         if nf_other_model:
             explain += f"<p style='color:Red;'><sub>Please consider to use another model!</sub></p>"
-        return [round(np.mean(values),2), np.mean(values)/self.df_history[-1] -1, plot_url, df_result, explain.replace("\n", "<br />")]
+        return [round(np.mean(values),2), np.mean(values)/self.df_history[-1] -1, plot_url_2, df_result, explain.replace("\n", "<br />"), plot_url_1]
 
 #a= Probabilistic_Valuator(ticker = 'AAPL')
 #a.run_simulations()

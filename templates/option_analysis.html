@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .responsive {
+          max-width: 100%;
+          height: auto;
+        }
+        .column {
+            float: left;
+            max-width: 50%;
+            padding: 10px;
+        }
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        footer {
+            text-align: right;
+            background-color: rgb(115, 138, 118);
+            color: white;
+        }
+        input[type=submit], input[type="reset"]{
+            text-decoration: none;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100px;}
+        .tabcontent {
+          display: flex;
+          text-align: center;
+          vertical-align: middle
+        }
+        
+    </style>
+    <title>Option Analysis (in progress)</title>
+</head>
+<body>
+    <table width="100%">
+        <tr>
+            <td width="30%" align="left" valign="bottom">
+                <a href="https://www.smithquaaf.com/">
+                    <img src="https://static.wixstatic.com/media/6384cb_7cc6f906914340b9a48db70681ee036c~mv2.png/v1/crop/x_0,y_2,w_1370,h_608/fill/w_290,h_129,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/QUAFF-logo-colour_3x.png" 
+                    alt="Image" width="130" height="58">
+                </a>
+            </td>
+          <td width="40%" align="center" valign="bottom">
+            <h1 style="margin: 0;">Option Analysis (in progress)</h1>
+          </td>
+          <td width="30%" align="right" valign="bottom">
+            <form method="get" action="{{ url_for('main') }}" id="main">
+                <input type="submit" value="Return to main page" style="float:right;width: 150px; height: 30px; font-size:15px; margin_bottom:100px"/>
+            </form>
+          </td>
+        </tr>
+      </table>
+    <hr>
+
+    <div class="row">
+            <form method="post" action="{{ url_for('option_result') }}" id="calculator_form">
+                <label for="Ticker">Ticker (Format: AAPL):</label>
+                <br/>
+                <input type="text" name="Ticker" id="Ticker" value={{default_ticker}}>
+                <br/>
+                <label for="option_type">Option type:</label>
+                <br/>
+                <select name="option_type">
+                    <option value="call" {% if default_option_type == "call" %} selected {% endif %}>Call Option</option>
+                    <option value="put" {% if default_option_type == "put" %} selected {% endif %}>Put Option</option>
+                </select>
+                <br/>
+                <label for="All call options expiry within (weeks):">All call options expiry within (weeks):</label>
+                <br/>
+                <input type="number" name="expiry" id="expiry" value={{default_expiry_weeks}}>
+                <br/>
+                <label for="rf_rate">Risk Free Rate (Default as 10 years treasury yield):</label>
+                <br/>
+                <input type="number" step="any" name="rf_rate" id="rf_rate" value={{default_rfr}}>
+                <br/>
+                <label for="trade_date">Consider trade within (days):</label>
+                <br/>
+                <input type="number" name="trade_date" id="trade_date" value={{default_trade_date}}>
+                <br/>
+                <label for="curvefit_t">Curve fit threshold (lower means more strict):</label>
+                <br/>
+                <input type="number" name="curvefit_t" id="curvefit_t" value={{default_curvefit_t}}>
+                <br/>
+                <input type="submit" value="SUBMIT"  style = "font-size:15px"/>
+            </form>
+    </div>
+        {% if calculation_success == True %}
+        
+    <div class="row" style="background-color:#9cb3a2;">
+        <div class="column" style="width: 46%; padding: 1% 2%" align="center">
+            <h2>Call option Tables</h2>
+            <label for="expiry_date">Expiry date:</label>
+            <select name="expiry_date" id="expiry_date" onchange="openOptionTable(this)">
+                {% for t in option_table_keys%}
+                <option value="{{t}}">{{t}}</option>
+                {% endfor %}
+            </select>
+            <br/>
+            {% for t in option_table.keys()%}
+                {% if t == option_table_keys[0] %}
+                    <div id="{{t}}" class="tabcontent" style="display:block">
+                {% else %}
+                    <div id="{{t}}" class="tabcontent" style="display:none">
+                {% endif %}
+                        {{ option_table[t]|safe }}
+                    </div>
+            {% endfor %}
+        </div>
+        <div class="column" style="width: 46%; padding: 1% 2%" align="center">
+            <h2>{{default_ticker}} Option iv (did it smile?) </h2>
+            <img src="data:image/png;base64,{{ plot_url }}" class="responsive" />
+        </div>
+    </div>
+    {% endif %}
+    {% if calculation_success == False %}
+        <br/>
+        {{error | safe}}
+        <p>Please check if the tickers input ({{default_tickers}}) are correct</p>
+    {% endif %}
+    </div>
+    <br/>
+
+    <script>
+        function openOptionTable(elmnt) {
+            var i, tabcontent;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            document.getElementById(elmnt.value).style.display = "block";        
+        }
+    </script>
+
+    <div>
+        <hr>
+        <footer>
+            <p>Author: Minxiang Liu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; lminxiang@gmail.com</p>
+            <p>Queen's University Alternative Assets Fund (QUAAF)<br></p>
+        </footer>
+        </div>
+</body>
+</html>

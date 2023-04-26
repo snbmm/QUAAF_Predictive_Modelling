@@ -62,15 +62,15 @@
             width: 200px;}
         
     </style>
-    <title>Document</title>
+    <title>Probabilistic Valuation</title>
 </head>
 <body>
     <table width="100%">
         <tr>
-          <td width="30%" align="left">
+          <td width="30%" align="left" valign="bottom">
             <a href="https://www.smithquaaf.com/">
                 <img src="https://static.wixstatic.com/media/6384cb_7cc6f906914340b9a48db70681ee036c~mv2.png/v1/crop/x_0,y_2,w_1370,h_608/fill/w_290,h_129,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/QUAFF-logo-colour_3x.png" 
-                alt="Image" width="50%" height="50%">
+                alt="Image" width="130" height="58">
             </a>
           </td>
           <td width="40%" align="center" valign="bottom">
@@ -86,13 +86,13 @@
     <hr>
     <div class="row" style="background-color:#9cb3a2; padding: 20px" align="center">
         <h2>DCF with EBIT Exit model</h2>
-        <div class="column" align="left" style="max-width: 45%; padding-left: 30px">
+        <div class="column" align="left" style="width: 46%; padding: 1% 2%">
             <h3>Formulas</h3>
             <h4>Intrinsic Value = Σ FCF / (1 + r) ^ t</h4>
             <h4>Present Value of TV = Final Year EBIT x Exit Multiple ÷ (1 + Discount Rate) ^ Years</h4>
             <h4>Estimated Stock Price = (Intrinsic Value + Present Value of TV) ÷ Outstanding Shares</h4>
         </div>
-        <div class="column" align="left" style="max-width: 45%; padding-left: 30px">
+        <div class="column" align="left" style="width: 46%; padding: 1% 2%">
             <h3>Limitations</h3>
             <p>1. Uncertainty of future cash flow projections
                 <br/>2. Forecasting errors can lead to significant discrepancies
@@ -109,7 +109,7 @@
     <div id="WACC" class="tabcontent">
         <form method="post" action="{{ url_for('operation_wacc') }}" id="calculator_form">
             <div class="row" style="background-color:#9cb3a2;" align="left">
-                <div class="column">
+                <div class="column" style="width: 46%; padding: 1% 2%">
                     <label for="Ticker">Ticker (Format: AAPL):</label>
                     <br/>
                     <input type="text" name="Ticker" id="Ticker" value={{default_ticker}}>
@@ -128,7 +128,7 @@
                     <label for="intang_as_da">Consider Intangibles Amortization as D&A:  </label>
                     <input type="checkbox" name="intang_as_da" id="intang_as_da" {% if default_intang_as_da %}checked{% endif %}>
                 </div>
-                <div class="column">
+                <div class="column" style="width: 46%; padding: 1% 2%">
                     <label for="Beta">Stock beta:</label>
                     <br/>
                     <input type="number" step="any" name="beta" id="beta" value={{default_beta}} disabled>
@@ -147,18 +147,24 @@
                 </div>
             </div>
             <br/>
-            <input type="submit" value="Calculate WACC"/>
+            <input type="submit" value="Calculate WACC"  style = "font-size:20px"/>
         </form>
     {% if calculation_wacc_success == True %}
+    <div class="row" style="background-color:#66ac6a;" align="center">
         <h2>Fundamentals</h2>
         {{ fundamentals|safe }}
+        <div class="row" style="background-color:#66ac6a;">
+            <img src="data:image/png;base64,{{ fundamentals_plot }}" class="responsive"  />
+        </div>
+    </div>
+    <br/>
         <div class="row" style="background-color:#9cb3a2;">
             <div class="column">
                 <h2>WACC distribution</h2>
-                <img src="data:image/png;base64,{{ wacc_dist }}" class="responsive" />
+                <img src="data:image/png;base64,{{ wacc_dist }}" class="responsive"  />
             </div>
             <div class="column" align="left">
-                <h2>Calculation explain</h2>
+                <h2>Calculation explained</h2>
                 {{ wacc_explain|safe }}
             </div>
         </div>
@@ -166,13 +172,13 @@
     {% endif %}
     {% if calculation_wacc_success == False %}
         <br/>
-        <p>{{error}}</p>
+        {{error | safe}}
     {% endif %}</div>
 
     <div id="SIMULATION" class="tabcontent">
         <form method="post" action="{{ url_for('operation_simulation') }}" id="calculator_form">
             <div class="row" style="background-color:#9cb3a2;" align="left">
-                <div class="column">
+                <div class="column" style="width: 46%; padding: 1% 2%">
                     <label for="Ticker">Ticker (Format: AAPL):</label>
                     <br/>
                     <input type="text" name="Ticker" id="Ticker" value={{default_ticker}}>
@@ -195,7 +201,7 @@
                     <label for="intang_as_da">Consider Intangibles Amortization as D&A:  </label>
                     <input type="checkbox" name="intang_as_da" id="intang_as_da" {% if default_intang_as_da %}checked{% endif %}>
                 </div>
-                <div class="column">
+                <div class="column" style="width: 46%; padding: 1% 2%">
                     <label for="Beta">Stock beta:</label>
                     <br/>
                     <input type="number" step="any" name="beta" id="beta" value={{default_beta}} disabled>
@@ -216,19 +222,24 @@
                 </div>
             </div>
             <br/>
-            <input type="submit" value="Run simulation"/>
+            <input type="submit" value="Run simulation"  style = "font-size:20px"/>
         </form>
 
         {% if simulation_success == True %}
+        <div class="row" style="background-color:#66ac6a;" align="center">
             <h2>Projection (mean value of 2000 iterations)</h2>
             {{ FCFF_mean|safe }}
+            <br/>
+            <img src="data:image/png;base64,{{ FCFF_mean_plot }}" class="responsive" />
+        </div>
+        <br/>
             <div class="row" style="background-color:#9cb3a2;">
                 <div class="column">
                     <h2>Evaluations</h2>
                     <img src="data:image/png;base64,{{ price_dist }}" class="responsive" />
                 </div>
                 <div class="column" align="left">
-                    <h2>Calculation explain</h2>
+                    <h2>Calculation explained</h2>
                     {{ pv_explain|safe }}
                 </div>
             </div>
@@ -236,7 +247,7 @@
         {% endif %}
         {% if simulation_success == False %}
             <br/>
-            <p>{{error}}</p>
+            {{error | safe}}
         {% endif %}
     </div>
 

@@ -31,6 +31,21 @@ body {font-family: "Lato", sans-serif;}
   vertical-align: middle
 }
 
+.responsive {
+          max-width: 100%;
+          height: auto;
+        }
+.column {
+            float: left;
+            max-width: 50%;
+            padding: 10px;
+        }
+.row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
 #Home {background-color:#66ac6a;}
 #Ready {background-color:#66ac6a;}
 #Developping {background-color:#757373;}
@@ -58,14 +73,14 @@ input[type=submit]{
 <body>
   <table width="100%">
     <tr>
-      <td width="30%" align="left">
+      <td width="30%" align="left" valign="bottom">
         <a href="https://www.smithquaaf.com/">
-          <img src="https://static.wixstatic.com/media/6384cb_7cc6f906914340b9a48db70681ee036c~mv2.png/v1/crop/x_0,y_2,w_1370,h_608/fill/w_290,h_129,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/QUAFF-logo-colour_3x.png" 
-          alt="Image" width="50%" height="50%">
+            <img src="https://static.wixstatic.com/media/6384cb_7cc6f906914340b9a48db70681ee036c~mv2.png/v1/crop/x_0,y_2,w_1370,h_608/fill/w_290,h_129,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/QUAFF-logo-colour_3x.png" 
+            alt="Image" width="130" height="58">
         </a>
       </td>
       <td width="40%" align="center" valign="bottom">
-        <h1 style="margin: 0;">QUAAF Toolkit</h1>
+        <h1 style="margin: 0;">QUAAF Toolbox</h1>
       </td>
       <td width="30%"></td>
     </tr>
@@ -77,10 +92,21 @@ input[type=submit]{
 <button class="tablink" onclick="openCity('Feedback', this, '#66ac6a')">Need more tools?</button>
 
 <div id="Home" class="tabcontent">
-  <h3>This toolkit portal is designed for QUAAF internal usage!</h3>
+    <div class="row" style="background-color:#9cb3a2;" align="left">
+      <h4>Update log:</h4>
+      <p>
+        2023-04-22 by Minxiang Liu: Added option anaylsis tool to analyze the minimun IV options using strike, current price and option price.
+      </p>
+      <p>
+        2023-04-21 by Minxiang Liu: Changed the layout for plotting, expected to have more stable font sizes in display.
+      </p>
+    </div>
+  <h3>This toolbox portal is designed for QUAAF internal usage!</h3>
   <img src="{{url_for('static', filename='Presentation1.jpg')}}" alt="Intro 1"  style="width:70%;height:70%;">
   <img src="{{url_for('static', filename='Presentation2.jpg')}}" alt="Intro 2"  style="width:70%;height:70%;">
   <img src="{{url_for('static', filename='Presentation3.jpg')}}" alt="Intro 3"  style="width:70%;height:70%;">
+  <img src="{{url_for('static', filename='Presentation4.jpg')}}" alt="Intro 4"  style="width:70%;height:70%;">
+  <img src="{{url_for('static', filename='Presentation5.jpg')}}" alt="Intro 5"  style="width:70%;height:70%;">
   <br>
   <a href="https://github.com/snbmm/QUAAF_Predictive_Modelling"> Github link</a>
   <a href="https://dev.azure.com/QUAAF/_git/Data"> Azure link</a>
@@ -92,6 +118,9 @@ input[type=submit]{
   </form>
   <form method="get" action="{{ url_for('init_probailistic_valuator') }}" id="valuation_model_form">
     <input type="submit" value="Valuation Model" style = "font-size:20px"/>
+  </form>
+  <form method="get" action="{{ url_for('init_option_analysis') }}" id="option_model_form">
+    <input type="submit" value="Option Analysis (testing)" style = "font-size:20px"/>
   </form>
 </div>
 
@@ -112,6 +141,10 @@ input[type=submit]{
     <input type="submit" value="Submit" style = "font-size:20px; border: solid; border-color: #e7e7e7" disabled>    
 </div>
 <hr>
+
+<p><small>* Any investment decisions made based on the information and tools provided on our website are done at your own risk. We strongly recommend that you seek the advice of a licensed financial advisor before making any investment decisions. </small></p>
+
+
 <footer>
   <p>Author: Minxiang Liu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; lminxiang@gmail.com</p>
   <p>Queen's University Alternative Assets Fund (QUAAF)<br></p>
