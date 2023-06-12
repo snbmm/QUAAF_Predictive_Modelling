@@ -17,11 +17,14 @@ def get_setiments(tickers = ['NFLX','PTON','IDXX','HSY','PYPL']):
     news_tables = {}
     for tick in tickers:
         url = web_url + tick
-        req = Request(url=url,headers={"User-Agent": "Chrome Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0"}) 
-        response = urlopen(req)    
-        html = BeautifulSoup(response,"lxml")
-        news_table = html.find(id='news-table')
-        news_tables[tick] = news_table
+        try:
+            req = Request(url=url,headers={"User-Agent": "Chrome Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0"}) 
+            response = urlopen(req)    
+            html = BeautifulSoup(response,"lxml")
+            news_table = html.find(id='news-table')
+            news_tables[tick] = news_table
+        except Exception as e:
+            print("Failed to get news on {}".format(tick))
 
     news_list = []
     for file_name, news_table in news_tables.items():

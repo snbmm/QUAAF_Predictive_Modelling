@@ -77,6 +77,7 @@ def operation_result():
             calculation_success=True
         )
     except Exception as e:
+        print("Failed on operation_result")
         return render_template(
             'portfolio_optimizer.html',
             default_tickers = tickers_input,
@@ -142,6 +143,7 @@ def operation_wacc():
         )
     
     except Exception as e:
+        print("Failed on operation_wacc")
         return render_template(
             'probailistic_valuator.html',
             default_tab = 'wacc',
@@ -201,6 +203,7 @@ def operation_simulation():
         )
     
     except Exception as e:
+        print("Failed on operation_simulation")
         return render_template(
             'probailistic_valuator.html',
             default_ticker = 'AAPL',
@@ -260,6 +263,7 @@ def option_result():
         )
     
     except Exception as e:
+        print("Failed on option_result")
         return render_template(
             'option_analysis.html',
             default_ticker = ticker_input,
