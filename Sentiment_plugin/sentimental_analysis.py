@@ -26,6 +26,9 @@ def get_setiments(tickers = ['NFLX','PTON','IDXX','HSY','PYPL']):
         except Exception as e:
             print("Failed to get news on {}".format(tick))
 
+    if not news_tables:
+        return [None, [None, None]]
+
     news_list = []
     for file_name, news_table in news_tables.items():
         for i in news_table.findAll('tr'):

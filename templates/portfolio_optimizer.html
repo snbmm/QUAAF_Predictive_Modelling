@@ -75,7 +75,7 @@
                 <input type="submit" value="SUBMIT"  style = "font-size:15px"/>
             </form>
         </div>
-        {% if calculation_success == True %}
+        {% if calculation_success == True and sentiments_plot%}
         <div class="column" style="width: 46%; padding: 1% 2%; background-color:#8d9b93;">
             <h2>Sentimental Indicator</h2>
             <img src="data:image/png;base64,{{ sentiments_plot }}" class="responsive" />
