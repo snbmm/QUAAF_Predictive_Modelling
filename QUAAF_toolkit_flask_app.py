@@ -276,6 +276,45 @@ def option_result():
             error= package(e)
         )
 
+@Flask_App.route('/sentimental_analysis', methods=['GET'])
+def init_sentimental_analysis():
+    """ Displays the sentimental_analysis page accessible at '/sentimental_analysis' """
+
+    return render_template('sentimental_analysis.html',
+                           default_tickers = "NFLX,DOCU,IDXX,HSY,PYPL")
+
+@Flask_App.route('/sentimental_analysis', methods=['POST'])
+def sentimental_result():
+    """Route where we send results"""
+
+    error = None
+    result = None
+
+    # request.form looks for:
+    # html tags with matching "name= "
+    tickers_input = request.form['Tickers']  
+
+    try:
+        tickers = tickers_input.replace(';',' ').replace(',',' ').replace("'",' ').split()
+        sentiments = sentimental_analysis.get_setiments(tickers)
+
+        return render_template(
+            'sentimental_analysis.html',
+            default_tickers = tickers_input,
+            sentiments_plot = sentiments[0],
+            news_list = sentiments[1],
+            calculation_success=True
+        )
+    except Exception as e:
+        print("Failed on operation_result")
+        return render_template(
+            'sentimental_analysis.html',
+            default_tickers = tickers_input,
+            calculation_success=False,
+            error= package(e)
+        )
+
 if __name__ == '__main__':
     Flask_App.debug = True
+
     Flask_App.run(host='0.0.0.0', port=80)

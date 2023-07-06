@@ -31,7 +31,7 @@
             width: 100px;}
         
     </style>
-    <title>Portfolio Optimizer</title>
+    <title>Sentimental Analysis</title>
 </head>
 <body>
     <table width="100%">
@@ -43,7 +43,7 @@
                 </a>
             </td>
           <td width="40%" align="center" valign="bottom">
-            <h1 style="margin: 0;">Portfolio Optimizer</h1>
+            <h1 style="margin: 0;">Sentimental Analysis</h1>
           </td>
           <td width="30%" align="right" valign="bottom">
             <form method="get" action="{{ url_for('main') }}" id="main">
@@ -75,24 +75,14 @@
     
     <div class="row">
         <div class="column" style="width: 46%; padding: 1% 2%">
-            <form method="post" action="{{ url_for('operation_result') }}" id="calculator_form">
+            <form method="post" action="{{ url_for('sentimental_result') }}" id="calculator_form">
                 <label for="Tickers">Tickers (Formate: AAA, BBB, CCC or AAA BBB CCC):</label>
                 <br/>
                 <textarea rows="5" cols="60" name="Tickers" id="Tickers">{{default_tickers}}</textarea>
                 <br/>
-                <br/>
-                <label for="Track_back_years:">Track Back (years):</label>
-                <br/>
-                <input type="number" name="Track_back_years" id="Track_back_years" value={{default_track_back_years}}>
-                <br/>
-                <br/>
-                <label for="rf_rate">Risk Free Rate (Default as 10 years treasury yield):</label>
-                <br/>
-                <input type="number" step="any" name="rf_rate" id="rf_rate" value={{default_rfr}}>
-                <br/>
-                <br/>
                 <input type="submit" value="SUBMIT"  style = "font-size:15px"/>
             </form>
+            <p>* Sentimental analysis only works for US market at this moment.</p>
         </div>
         {% if calculation_success == True and sentiments_plot%}
         <div class="column" style="width: 46%; padding: 1% 2%; background-color:#8d9b93;">
@@ -106,64 +96,6 @@
         {% endif %}
     </div>
     <br/>
-
-    {% if calculation_success == True %}
-        <div class="row" style="background-color:#9cb3a2;">
-            <div class="column">
-                <h2>Cumulative Returns</h2>
-                <img src="data:image/png;base64,{{ cumulative_returns }}" class="responsive" />
-            </div>
-            <div class="column">
-                <h2>Return Facts</h2>
-                <h3>Mean Returns</h3>
-                {{ mean_return|safe }}
-                <h3>Risk Matrix</h3>
-                {{ cov_returns|safe }}
-            </div>
-        </div>
-        <br/>
-        <div class="row" style="background-color:#8d9b93;">
-            <div class="column">
-                <h2>Efficient Frontier</h2>
-                <img src="data:image/png;base64,{{ efficient_frontier }}" alt="Nature" class="responsive" />
-            </div>
-            <div class="column">
-                <h2>Portfolio Allocations and Performance</h2>
-                <h3>Highest Sharpe Ratio</h3>
-                {{ bsr_weight|safe }}
-                {{ bsr_perf|safe }}
-                <h3>Lowest Volatility</h3>
-                {{ mv_weight|safe }}
-                {{ mv_perf|safe }}
-            </div>
-        </div>
-        <br/>
-        <h2 style="padding: 0 1%">Portfolio VaR</h2>
-        <div class="row" style="background-color:#9cb3a2;">
-            <h3 style="padding: 1% 2%">Best Sharpe Ratio Portfolio</h3>
-            <div class="column" style="width: 46%; padding: 1% 2%">
-                <img src="data:image/png;base64,{{ var_max_s[0] }}" alt="Nature" class="responsive" />
-            </div>
-            <div class="column" style="width: 46%; padding: 1% 2%">
-                <img src="data:image/png;base64,{{ var_max_s[1] }}" alt="Nature" class="responsive" />
-            </div>
-        </div>
-        <div class="row" style="background-color:#8d9b93;">
-            <h3 style="padding: 1% 2%">Minimum Volatility Portfolio</h3>
-            <div class="column" style="width: 46%; padding: 1% 2%">
-                <img src="data:image/png;base64,{{ var_min_v[0] }}" alt="Nature" class="responsive" />
-            </div>
-            <div class="column" style="width: 46%; padding: 1% 2%">
-                <img src="data:image/png;base64,{{ var_min_v[1] }}" alt="Nature" class="responsive" />
-            </div>
-        </div>
-        
-    {% endif %}
-    {% if calculation_success == False %}
-        <br/>
-        {{error | safe}}
-        <p>Please check if the tickers input ({{default_tickers}}) are correct</p>
-    {% endif %}
     <div>
     <hr>
     </div>

@@ -86,6 +86,25 @@ input[type=submit]{
     </tr>
   </table>
 <hr>
+<div>
+  <footer>
+      <table width="100%">
+          <tr>
+              <td width="70%" align="left" valign="bottom">
+                  <p>* Any investment decisions made based on the information and tools provided on our website are done at your own risk. We strongly recommend that you seek the advice of a licensed financial advisor before making any investment decisions. </p>
+              </td>
+              <td width="10%" align="left" valign="bottom">
+              </td>
+            <td width="20%" align="left" valign="bottom">
+              <p><small>Author: Minxiang Liu<br> Email: lminxiang@gmail.com</small>
+              <a href="https://www.linkedin.com/in/minxiang-liu-7b147193/"><small>Linkedin</small></a>
+              <a href="https://github.com/snbmm/QUAAF_Predictive_Modelling"><small>Github</small></a></p>
+            </td>
+          </tr>
+        </table>
+  </footer>
+  <hr>
+  </div>
 <button class="tablink" onclick="openCity('Home', this, '#66ac6a')" id="defaultOpen">Home</button>
 <button class="tablink" onclick="openCity('Ready', this, '#66ac6a')">Ready to use</button>
 <button class="tablink" onclick="openCity('Developping', this, '#757373')">In Progress</button>
@@ -94,6 +113,12 @@ input[type=submit]{
 <div id="Home" class="tabcontent">
     <div class="row" style="background-color:#9cb3a2;" align="left">
       <h4>Update log:</h4>
+      <p>
+        2023-07-05 by Minxiang Liu: Divided sentimental analysis from portfolio optimizer, polished UI
+      </p>
+      <p>
+        2023-06-15 by Minxiang Liu: Fixed issues with Canadian stocks in portfolio.
+      </p>
       <p>
         2023-04-22 by Minxiang Liu: Added option anaylsis tool to analyze the minimun IV options using strike, current price and option price.
       </p>
@@ -122,6 +147,9 @@ input[type=submit]{
   <form method="get" action="{{ url_for('init_option_analysis') }}" id="option_model_form">
     <input type="submit" value="Option Analysis (testing)" style = "font-size:20px"/>
   </form>
+  <form method="get" action="{{ url_for('init_sentimental_analysis') }}" id="sentimental_analysis_form">
+    <input type="submit" value="Sentimental Analysis" style = "font-size:20px"/>
+  </form>
 </div>
 
 <div id="Developping" class="tabcontent">
@@ -141,14 +169,6 @@ input[type=submit]{
     <input type="submit" value="Submit" style = "font-size:20px; border: solid; border-color: #e7e7e7" disabled>    
 </div>
 <hr>
-
-<p><small>* Any investment decisions made based on the information and tools provided on our website are done at your own risk. We strongly recommend that you seek the advice of a licensed financial advisor before making any investment decisions. </small></p>
-
-
-<footer>
-  <p>Author: Minxiang Liu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; lminxiang@gmail.com</p>
-  <p>Queen's University Alternative Assets Fund (QUAAF)<br></p>
-</footer>
 
 <script>
   function openCity(cityName,elmnt,color) {
