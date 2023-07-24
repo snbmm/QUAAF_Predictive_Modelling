@@ -91,6 +91,27 @@ def operation_result():
 def init_probailistic_valuator():
     """ Displays the probailistic_valuator page accessible at '/probailistic_valuator' """
     print(Probabilistic_Valuator.get_default_risk_free_rate())
+    try:
+        default_beta = Probabilistic_Valuator.get_default_beta('AAPL')
+    except Exception as e:
+        default_beta = 0
+        return render_template('probailistic_valuator.html',
+                                default_tab = 'wacc',
+                                default_ticker = 'AAPL',
+                                default_rfr_ticker = '^TNX',
+                                default_risk_free_rate = Probabilistic_Valuator.get_default_risk_free_rate(),
+                                default_market_return_rate = Probabilistic_Valuator.get_default_market_return_rate(),
+                                default_t_years = 10,
+                                default_beta = default_beta,
+                                default_rd_reinvest = True,
+                                default_intang_as_da = False,
+                                default_wacc = 0.0,
+                                default_wacc_std = 0.0,
+                                calculation_wacc_success=False,
+                                simulation_success = False,
+                                error= package("-E- Yahooquery is not availible now with error: {}, please try again later!".format(e))
+                                )
+
     return render_template('probailistic_valuator.html',
                            default_tab = 'wacc',
                            default_ticker = 'AAPL',
@@ -98,7 +119,7 @@ def init_probailistic_valuator():
                            default_risk_free_rate = Probabilistic_Valuator.get_default_risk_free_rate(),
                            default_market_return_rate = Probabilistic_Valuator.get_default_market_return_rate(),
                            default_t_years = 10,
-                           default_beta = Probabilistic_Valuator.get_default_beta('AAPL'),
+                           default_beta = default_beta,
                            default_rd_reinvest = True,
                            default_intang_as_da = False,
                            default_wacc = 0.0,

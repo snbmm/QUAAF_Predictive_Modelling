@@ -1,4 +1,5 @@
 import yahooquery as yq
+import yfinance as yf
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,9 +29,8 @@ class Probabilistic_Valuator():
         self.df_bs = yq_ticker.balance_sheet(frequency=freq, trailing = False).set_index('asOfDate')
         self.df_cf = yq_ticker.cash_flow(frequency=freq, trailing = False).set_index('asOfDate')
         self.df_history = yq_ticker.history(start = self.df_bs.index[0])['adjclose']
-        self.df_key_stats = yq_ticker.key_stats[ticker]
+        self.df_key_stats = yf.Ticker(ticker).info
         self.beta = beta or self.df_key_stats['beta']
-        self.df_summary_detail = yq_ticker.summary_detail[ticker]
         self.rd_in_reinvest = rd_in_reinvest
         self.intang_as_da = intang_as_da
         [self.fundamentals, self.fundamentals_plot] = self.get_fundamentals(intang_as_da = self.intang_as_da)
@@ -38,11 +38,18 @@ class Probabilistic_Valuator():
     
     @staticmethod
     def get_default_beta(ticker = 'AAPL'):
-        return yq.Ticker(ticker).key_stats[ticker]['beta']
+        try:
+            return yq.Ticker(ticker).key_stats[ticker]['beta']
+        except Exception as e:
+            return yf.Ticker(ticker).info['beta']
     
     @staticmethod
     def get_default_risk_free_rate(ticker = '^TNX'):
-        return yq.Ticker(ticker).history(period='1y')['adjclose'][-1]/100
+        rfr = yq.Ticker(ticker).history(period='1y')['adjclose'][-1]/100
+        if isinstance(rfr, float):
+            return rfr
+        else:
+            return yf.download(tickers = ticker)['Adj Close'][-1]/100
     
     @staticmethod
     def get_default_market_return_rate():
@@ -174,7 +181,7 @@ class Probabilistic_Valuator():
         print("cost_of_debt: {}".format(cost_of_debt))
 
         # Get the market capitalization
-        market_cap = self.df_summary_detail['marketCap']
+        market_cap = self.df_key_stats['marketCap']
         print("market_cap: {}".format(market_cap))
 
         # Get the total debt
