@@ -28,7 +28,7 @@
             margin: 4px 2px;
             cursor: pointer;
             border-radius: 5px;
-            width: 100px;}
+            width: 150px;}
         .tabcontent {
           display: flex;
           text-align: center;
@@ -80,37 +80,67 @@
 
     <div class="row">
             <form method="post" action="{{ url_for('option_result') }}" id="calculator_form">
-                <label for="Ticker">Ticker (Format: AAPL):</label>
-                <br/>
-                <input type="text" name="Ticker" id="Ticker" value={{default_ticker}}>
-                <br/>
-                <label for="option_type">Option type:</label>
-                <br/>
-                <select name="option_type">
-                    <option value="call" {% if default_option_type == "call" %} selected {% endif %}>Call Option</option>
-                    <option value="put" {% if default_option_type == "put" %} selected {% endif %}>Put Option</option>
-                </select>
-                <br/>
-                <label for="All call options expiry within (weeks):">All call options expiry within (weeks):</label>
-                <br/>
-                <input type="number" name="expiry" id="expiry" value={{default_expiry_weeks}}>
-                <br/>
-                <label for="rf_rate">Risk Free Rate (Default as 10 years treasury yield):</label>
-                <br/>
-                <input type="number" step="any" name="rf_rate" id="rf_rate" value={{default_rfr}}>
-                <br/>
-                <label for="trade_date">Consider trade within (days):</label>
-                <br/>
-                <input type="number" name="trade_date" id="trade_date" value={{default_trade_date}}>
-                <br/>
-                <label for="curvefit_t">Curve fit threshold (lower means more strict):</label>
-                <br/>
-                <input type="number" name="curvefit_t" id="curvefit_t" value={{default_curvefit_t}}>
-                <br/>
-                <input type="submit" value="SUBMIT"  style = "font-size:15px"/>
+                <div class="column" style="width: 46%; padding: 1% 2%" align="left">
+                    <label for="Ticker">Ticker (Format: AAPL):</label>
+                    <br/>
+                    <input type="text" name="Ticker" id="Ticker" value={{default_ticker}}>
+                    <br/>
+                    <label for="option_type">Option type:</label>
+                    <br/>
+                    <select name="option_type">
+                        <option value="call" {% if default_option_type == "call" %} selected {% endif %}>Call Option</option>
+                        <option value="put" {% if default_option_type == "put" %} selected {% endif %}>Put Option</option>
+                    </select>
+                    <br/>
+                    <label for="All call options expiry within (weeks):">All call options expiry within (weeks):</label>
+                    <br/>
+                    <input type="number" name="expiry" id="expiry" value={{default_expiry_weeks}}>
+                    <br/>
+                    <label for="rf_rate">Risk Free Rate (Default as 10 years treasury yield):</label>
+                    <br/>
+                    <input type="number" step="any" name="rf_rate" id="rf_rate" value={{default_rfr}}>
+                    <br/>
+                    <label for="trade_date">Consider trade within (days):</label>
+                    <br/>
+                    <input type="number" name="trade_date" id="trade_date" value={{default_trade_date}}>
+                    <br/>
+                    <label for="curvefit_t">Curve fit threshold (lower means more strict):</label>
+                    <br/>
+                    <input type="number" name="curvefit_t" id="curvefit_t" value={{default_curvefit_t}}>
+                    <br/>
+                    <input type="submit" name="submitIV" value="Analyse Options"  style = "font-size:15px"/>
+                </div>
+                {% if iv_calculation_success == True %}
+                <div class="column" style="width: 46%; padding: 1% 2%" align="left">
+                    <label for="contractSymbol">Build portfolio with contract Symbol</label>
+                    <br/>
+                    <label for="contractSymbol"></label>(Format: AAPL230804P00205000, choose low IV put option.):</label>
+                    <input type="text" name="contractSymbol" id="contractSymbol" value={{default_contractSymbol}}>
+                    <br/>
+                    <input type="submit" name="submitPo" value="Build Portfolio"  style = "font-size:15px"/>
+                </div>
+                {% endif %}
             </form>
     </div>
-        {% if calculation_success == True %}
+        {% if iv_calculation_success == True %}
+            {% if po_calculation_success == True %}
+            <br/>
+            <div class="row" style="background-color:#66ac6a;">
+                <div class="column" style="width: 46%; padding: 1% 2%" align="center">
+                    <h2>Iteration table for best Sharpe Ratio</h2>
+                    {{iteration_log|safe}}
+                    <br/>
+                    <br/>
+                    <h3>Best put/stock ratio {{max_input}}</h3>
+                    <h3>Mean Return change from {{original_return}}% to {{new_return}}%</h3>
+                    <h3>Sharpe Ratio change from {{original_sharpe_ratio}} to {{best_sharpe_ratio}}</h3>
+                </div>
+                <div class="column" style="width: 46%; padding: 1% 2%" align="center">
+                    <h2>Portfolio with {{default_contractSymbol}}</h2>
+                <img src="data:image/png;base64,{{ port_plot_url }}" class="responsive" />
+                </div>
+            </div>
+            {% endif %}
         
     <div class="row" style="background-color:#9cb3a2;">
         <div class="column" style="width: 46%; padding: 1% 2%" align="center">
@@ -137,8 +167,9 @@
             <img src="data:image/png;base64,{{ plot_url }}" class="responsive" />
         </div>
     </div>
+
     {% endif %}
-    {% if calculation_success == False %}
+    {% if iv_calculation_success == False %}
         <br/>
         {{error | safe}}
         <p>Please check if the tickers input ({{default_tickers}}) are correct</p>

@@ -113,6 +113,9 @@ input[type=submit]{
 <div id="Home" class="tabcontent">
     <div class="row" style="background-color:#9cb3a2;" align="left">
       <h4>Update log:</h4>
+      <p style='color:Red;'>
+        2023-07-30 by Minxiang Liu: Adding portfolio optimizer for stock/put option pair.
+      </p>
       <p>
         2023-07-24 by Minxiang Liu: Fixed issue in valuation model, swithing from yahooquery to yfinance partially.
       </p>
@@ -141,14 +144,14 @@ input[type=submit]{
 </div>
 
 <div id="Ready" class="tabcontent">
+  <form method="get" action="{{ url_for('init_option_analysis') }}" id="option_model_form">
+    <input type="submit" value="Option Analysis (NEW)" style = "font-size:20px"/>
+  </form>
   <form method="get" action="{{ url_for('init_portfolio_optimizer') }}" id="portfolio_optimizer_form">
     <input type="submit" value="Portfolio Optimizer" style = "font-size:20px"/>
   </form>
   <form method="get" action="{{ url_for('init_probailistic_valuator') }}" id="valuation_model_form">
     <input type="submit" value="Valuation Model" style = "font-size:20px"/>
-  </form>
-  <form method="get" action="{{ url_for('init_option_analysis') }}" id="option_model_form">
-    <input type="submit" value="Option Analysis (testing)" style = "font-size:20px"/>
   </form>
   <form method="get" action="{{ url_for('init_sentimental_analysis') }}" id="sentimental_analysis_form">
     <input type="submit" value="Sentimental Analysis" style = "font-size:20px"/>

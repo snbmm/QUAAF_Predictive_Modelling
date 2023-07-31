@@ -5,6 +5,10 @@ from Portfolio_Optimization.Portfolio_Optimizer import Portfolio_Optimizer
 from probabilistic_Valuation_Model.probabilistic_valuator import Probabilistic_Valuator
 from Sentiment_plugin import sentimental_analysis
 from Option_pricing_model import option_pricing
+from Option_pricing_model.option_pricing import Option_Optimizor
+import matplotlib.pyplot as plt
+import base64
+import io
 
 Flask_App = Flask(__name__) # Creating our Flask Instance
 pd.options.display.precision = 3
@@ -248,8 +252,8 @@ def init_option_analysis():
     """ Displays the option_analysis page accessible at '/option_analysis' """
 
     return render_template('option_analysis.html',
-                           default_ticker = "AAPL",
-                           default_option_type = "call",
+                           default_ticker = "MSFT",
+                           default_option_type = "put",
                            default_expiry_weeks = 5,
                            default_rfr = Portfolio_Optimizer.get_default_risk_free_rate()/100,
                            default_trade_date = 3,
@@ -264,24 +268,80 @@ def option_result():
     rf_rate = float(request.form['rf_rate'])
     trade_date = int(request.form['trade_date'])
     curvefit_t = int(request.form['curvefit_t'])
-    
+    if 'submitPo' in request.form:
+        contractSymbol = request.form['contractSymbol']
+        left_boundary = 0
+        right_boundary = 20
     try:
         [plot, option_table] = option_pricing.get_iv_plot(sym = ticker_input, weeks = expiry_weeks, option_type = option_type,
                                                            rf= rf_rate, trade_date = trade_date, curvefit_t = curvefit_t)
-
-        return render_template(
-            'option_analysis.html',
-            default_ticker = ticker_input,
-            default_option_type = option_type,
-            default_expiry_weeks = expiry_weeks,
-            default_rfr = rf_rate,
-            default_trade_date = trade_date,
-            default_curvefit_t = curvefit_t,
-            plot_url = plot,
-            option_table_keys = list(option_table.keys()),
-            option_table = option_table,
-            calculation_success = True
-        )
+        if 'submitPo' in request.form:
+            option_week = option_pricing.get_option_week(contractSymbol, check_put = True)
+            if option_week == -1:
+                raise Exception("Invalid contract Symbol {}, we can only build portfolio with PUT options within 10 weeks".format(contractSymbol))
+            option_optimizor = Option_Optimizor(ticker_input, option_choice= option_week)
+            max_input = option_optimizor.find_max_input_recursive(left_boundary, right_boundary, option_symbols =[contractSymbol])
+            result1 = option_optimizor.option_sim(init_weight = 0, option_symbols =[contractSymbol])
+            result2 = option_optimizor.option_sim(init_weight = max_input, option_symbols =[contractSymbol])
+            print(result2)
+            best_sharpe_ratio = result2['Sharpe Ratio']
+            original_sharpe_ratio = result1['Sharpe Ratio']
+            new_mean_return = result2['total_earn'][list(result2['total_earn'].keys())[0]]['Return Rate']
+            original_mean_return = result1['total_earn'][list(result1['total_earn'].keys())[0]]['Return Rate']
+            df = pd.DataFrame(option_optimizor.option_sim(allocation_iteration=50, option_symbols =[contractSymbol])['total_earn']).T
+            df['Sharpe Ratio'] = (df['Return Rate'] - rf_rate/100/250*option_optimizor.days) / df['Return Rate std']
+            #print(df.sort_values('Put Weight'))
+            figure, axis = plt.subplots(3, 1, figsize=(8, 9), sharex= True, constrained_layout = True)
+            figure.supxlabel('Put option / stock ratio')
+            df.plot.scatter(x = 'Put Weight', y = 'Return Rate', ax=axis[0])
+            df.plot.scatter(x = 'Put Weight', y = 'Return Rate std', ax=axis[1])
+            df.plot.scatter(x = 'Put Weight', y = 'Sharpe Ratio', ax=axis[2])
+            img=io.BytesIO()
+            plt.savefig(img,format='png')
+            img.seek(0)
+            port_plot = base64.b64encode(img.getvalue()).decode()
+        if 'submitIV' in request.form:
+            return render_template(
+                'option_analysis.html',
+                default_ticker = ticker_input,
+                default_option_type = option_type,
+                default_expiry_weeks = expiry_weeks,
+                default_rfr = rf_rate,
+                default_trade_date = trade_date,
+                default_curvefit_t = curvefit_t,
+                default_contractSymbol = '',
+                plot_url = plot,
+                option_table_keys = list(option_table.keys()),
+                option_table = option_table,
+                iv_calculation_success = True,
+                po_calculation_success = False)
+        elif 'submitPo' in request.form:
+            borders = [{
+              'selector': 'td, th, table', 
+              'props'   : [ ('border', '1px solid lightgrey'), ('border-collapse', 'collapse'),('font-size', '0.5em')]
+            }]
+            return render_template(
+                'option_analysis.html',
+                default_ticker = ticker_input,
+                default_option_type = option_type,
+                default_expiry_weeks = expiry_weeks,
+                default_rfr = rf_rate,
+                default_trade_date = trade_date,
+                default_curvefit_t = curvefit_t,
+                default_contractSymbol = contractSymbol,
+                max_input = max_input,
+                original_sharpe_ratio = round(original_sharpe_ratio,3),
+                best_sharpe_ratio = round(best_sharpe_ratio,3),
+                original_return = round(original_mean_return*100,2),
+                new_return = round(new_mean_return*100,2),
+                plot_url = plot,
+                option_table_keys = list(option_table.keys()),
+                option_table = option_table,
+                iv_calculation_success = True,
+                po_calculation_success = True,
+                port_plot_url = port_plot,
+                iteration_log = option_optimizor.iteration_table.style.set_table_styles(borders).render()
+                )
     
     except Exception as e:
         print("Failed on option_result")
@@ -293,7 +353,8 @@ def option_result():
             default_rfr = rf_rate,
             default_trade_date = trade_date,
             default_curvefit_t = curvefit_t,
-            calculation_success = False,
+            iv_calculation_success = False,
+            po_calculation_success = False,
             error= package(e)
         )
 

@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore")
 def concave_curve(x, a, b, c):
     return a * x**2 + b * x + c
 
-def get_fridays(weeks = 4):
+def get_fridays(weeks = 10, format = "%Y-%m-%d"):
     fridays = []
     date = datetime.date.today() + datetime.timedelta(days=(4-datetime.date.today().weekday()) % 7) # next Friday
     if date == datetime.date.today():
@@ -23,9 +23,16 @@ def get_fridays(weeks = 4):
     one_year_later = datetime.date.today() + datetime.timedelta(days=7*weeks)
 
     while date <= one_year_later:
-        fridays.append(date.strftime("%Y-%m-%d"))
+        fridays.append(date.strftime(format))
         date += datetime.timedelta(days=7)
     return fridays
+
+def get_option_week(option_symbols, check_put = False):
+    dates = get_fridays(format='%y%m%d')
+    for i in range(len(dates)):
+        if dates[i] + check_put*'P' in option_symbols:
+            return i
+    return -1
 
 date_format = "%Y-%m-%d"
 
@@ -64,7 +71,6 @@ def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf =
         except Exception as e:
             print(e)
             continue
-        df_option_tables[t[j]] = opt[['contractSymbol','strike','lastPrice','inTheMoney','volume']].style.hide_index().set_table_styles(borders).bar(subset=['volume'], color='#d65f5f').render()
         delta_t.append((datetime.datetime.strptime(t[j], date_format).date()- datetime.date.today()).days/365)
         iv[delta_t[-1]] = {'strike':[], 'sigma':[]}
         for idx in range(len(opt.strike.values)):
@@ -84,8 +90,11 @@ def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf =
                 sigma = sigma - (opt_price_bs - opt_price) / vega
             iv[delta_t[-1]]['strike'].append(opt_strike)
             iv[delta_t[-1]]['sigma'].append(sigma)
+        opt['IV'] = iv[delta_t[-1]]['sigma']
+        opt['IV'].max()
+        opt['volume'] = opt['volume'].astype('int')
+        df_option_tables[t[j]] = opt[['contractSymbol','strike','lastPrice','inTheMoney','volume','IV']].style.hide_index().set_table_styles(borders).bar(subset=['volume'], color='#5fba7d').bar(subset=['IV'], color='#d65f5f', vmin = opt['IV'].min(), vmax = opt['IV'].max()).render()
 
-    # 绘制波动率微笑曲
     figure, axis = plt.subplots(len(delta_t), 1, figsize=(8, 3*len(delta_t)), sharex= True, constrained_layout = True)
     figure.supxlabel('Strike price $')
     figure.supylabel('Implied Valotility')
@@ -128,3 +137,88 @@ def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf =
     img.seek(0)
     plot_url = base64.b64encode(img.getvalue()).decode()
     return [plot_url, df_option_tables]
+
+
+class Option_Optimizor():
+    def __init__(self, ticker, prediction_iteration = 10000, option_choice = 0, period='5y'):
+        self.ticker = ticker
+        self.tick = yf.Ticker(ticker)
+        self.prediction_iteration = prediction_iteration
+        self.t = np.array(get_fridays())
+        #print(self.t)
+        self.option_choice = option_choice
+        self.days  = np.busday_count(datetime.date.today(), datetime.datetime.strptime(self.t[option_choice], date_format).date())
+        self.hist_prices = self.tick.history(period=period)['Close']
+        self.current_price = self.tick.info['currentPrice']
+        self.end_price = [self.current_price]*self.prediction_iteration
+        self.end_price *= (np.random.normal(self.hist_prices.pct_change(periods=self.days).mean(), 
+                                            self.hist_prices.pct_change(periods=self.days).std(), 
+                                            size = self.prediction_iteration)
+                                            +1)
+        #print(self.end_price)
+        self.plot_first_10 = 10
+        self.iteration_table = pd.DataFrame(columns=["Low Weight", "Sharpe Ratio 1", "High Weight", "Sharpe Ratio 2"])
+
+    def option_sim(self, init_weight = 0.0, allocation_iteration = 1, num_options_in_portfolio=1, option_symbols = []):
+        if option_symbols:
+            df = self.tick.option_chain(self.t[self.option_choice]).puts
+            #print(df['contractSymbol'])
+            #print(option_symbols)
+            opt = df[df['contractSymbol'].isin(option_symbols)]
+            num_options_in_portfolio = len(option_symbols)
+        else:
+            num_options_in_portfolio = 1
+            opt = self.tick.option_chain(self.t[self.option_choice]).puts.nlargest(num_options_in_portfolio, 'volume')
+
+        total_earn = {}
+        # Testing no option first
+        put_weight = [init_weight] * num_options_in_portfolio
+        for w in range(allocation_iteration):
+            total_earn[str(put_weight)] = {'Return Rate': 0, 'Return Rate std': 0}
+            total_return = []
+            #print('prediction_iteration {}'.format(self.prediction_iteration))
+            for i in range(self.prediction_iteration):
+                cost = 0
+                earn = 0
+                #print(put_weight)
+                for j in range(num_options_in_portfolio):
+                    #print(list(opt['lastPrice'])[j])
+                    #print(list(opt['strike'])[j] - end_price[i])
+                    #print(max(list(opt['strike'])[j] - end_price[i], 0))
+                    if np.random.random() < 1/(self.prediction_iteration*10):
+                        print("Option info: last price: {} strike: {}".format(list(opt['lastPrice'])[j], list(opt['strike'])[j]))
+                        print("Stock curent price: {}, end price: {}, option cost: {}, earn: {}.".format(self.current_price, self.end_price[i], cost, earn))
+
+                    cost += put_weight[j]*list(opt['lastPrice'])[j]
+                    earn += put_weight[j]* max(list(opt['strike'])[j] - self.end_price[i], 0)
+                #print(cost)
+                #print(earn)
+            #total_earn['Total Earn'].add(end_price[i] - current_price + earn - cost)
+            #total_earn['Total Earn without option'].add(end_price[i] - current_price)
+                total_return.append((self.end_price[i] - self.current_price + earn - cost)/self.current_price)
+
+
+            total_earn[str(put_weight)]['Return Rate'] = np.mean(total_return)
+            total_earn[str(put_weight)]['Return Rate std'] = np.std(total_return)
+            total_earn[str(put_weight)]['Put Weight'] = put_weight[0]
+            # set up next random allocation
+            put_weight = np.random.random(num_options_in_portfolio)*10
+        return {"total_earn":total_earn, "Sharpe Ratio":np.mean(total_return)/np.std(total_return)}
+
+
+    def find_max_input_recursive(self, left, right, option_symbols = [], tolerance=1e-2):
+
+        if right - left < tolerance:
+            return (left + right) / 2 
+
+        mid1 = (2 * left + right) / 3
+        mid2 = (left + 2 * right) / 3
+
+        f_mid1 = self.option_sim(init_weight = mid1, option_symbols = option_symbols)['Sharpe Ratio']
+        f_mid2 = self.option_sim(init_weight = mid2, option_symbols = option_symbols)['Sharpe Ratio']
+        self.iteration_table.loc[len(self.iteration_table.index)] = [mid1, f_mid1, mid2, f_mid2] 
+
+        if f_mid1 < f_mid2:
+            return self.find_max_input_recursive(mid1, right, option_symbols, tolerance)
+        else:
+            return self.find_max_input_recursive(left, mid2, option_symbols, tolerance)
