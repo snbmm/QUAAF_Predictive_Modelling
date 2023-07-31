@@ -115,6 +115,7 @@
                     <label for="contractSymbol">Build portfolio with contract Symbol</label>
                     <br/>
                     <label for="contractSymbol"></label>(Format: AAPL230804P00205000, choose low IV put option.):</label>
+                    <br/>
                     <input type="text" name="contractSymbol" id="contractSymbol" value={{default_contractSymbol}}>
                     <br/>
                     <input type="submit" name="submitPo" value="Build Portfolio"  style = "font-size:15px"/>
@@ -144,7 +145,7 @@
         
     <div class="row" style="background-color:#9cb3a2;">
         <div class="column" style="width: 46%; padding: 1% 2%" align="center">
-            <h2>Call option Tables</h2>
+            <h2>{{default_option_type}} option tables</h2>
             <label for="expiry_date">Expiry date:</label>
             <select name="expiry_date" id="expiry_date" onchange="openOptionTable(this)">
                 {% for t in option_table_keys%}

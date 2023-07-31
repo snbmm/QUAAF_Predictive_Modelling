@@ -283,7 +283,7 @@ def option_result():
             max_input = option_optimizor.find_max_input_recursive(left_boundary, right_boundary, option_symbols =[contractSymbol])
             result1 = option_optimizor.option_sim(init_weight = 0, option_symbols =[contractSymbol])
             result2 = option_optimizor.option_sim(init_weight = max_input, option_symbols =[contractSymbol])
-            print(result2)
+            #print(result2)
             best_sharpe_ratio = result2['Sharpe Ratio']
             original_sharpe_ratio = result1['Sharpe Ratio']
             new_mean_return = result2['total_earn'][list(result2['total_earn'].keys())[0]]['Return Rate']

@@ -101,12 +101,12 @@ def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf =
     font = {'family' : 'normal',
         'size'   : 10}
     for i in range(len(delta_t)):
-        print(iv)
+        #print(iv)
         df_iv_k = pd.DataFrame()
         df_iv_k['K'] = iv[delta_t[i]]['strike']
         df_iv_k['iv'] = iv[delta_t[i]]['sigma']
         df_iv_k.dropna(inplace=True)
-        print(df_iv_k)
+        #print(df_iv_k)
 
         # Remove outlier using curvefit
         popt, pcov = curve_fit(concave_curve, df_iv_k['K'], df_iv_k['iv'])
@@ -115,7 +115,7 @@ def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf =
         threshold = curvefit_t * mad
         df_iv_K_out = df_iv_k[errors >= threshold]
         df_iv_k_in = df_iv_k[errors < threshold]
-        print(df_iv_K_out)
+        #print(df_iv_K_out)
 
         #Curve fit again without outliers
         popt, pcov = curve_fit(concave_curve, df_iv_k_in['K'], df_iv_k_in['iv'])
@@ -185,9 +185,9 @@ class Option_Optimizor():
                     #print(list(opt['lastPrice'])[j])
                     #print(list(opt['strike'])[j] - end_price[i])
                     #print(max(list(opt['strike'])[j] - end_price[i], 0))
-                    if np.random.random() < 1/(self.prediction_iteration*10):
-                        print("Option info: last price: {} strike: {}".format(list(opt['lastPrice'])[j], list(opt['strike'])[j]))
-                        print("Stock curent price: {}, end price: {}, option cost: {}, earn: {}.".format(self.current_price, self.end_price[i], cost, earn))
+                    #if np.random.random() < 1/(self.prediction_iteration*10):
+                    #    print("Option info: last price: {} strike: {}".format(list(opt['lastPrice'])[j], list(opt['strike'])[j]))
+                    #    print("Stock curent price: {}, end price: {}, option cost: {}, earn: {}.".format(self.current_price, self.end_price[i], cost, earn))
 
                     cost += put_weight[j]*list(opt['lastPrice'])[j]
                     earn += put_weight[j]* max(list(opt['strike'])[j] - self.end_price[i], 0)
