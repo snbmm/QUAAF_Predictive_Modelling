@@ -151,10 +151,13 @@ class Option_Optimizor():
         self.hist_prices = self.tick.history(period=period)['Close']
         self.current_price = self.tick.info['currentPrice']
         self.end_price = [self.current_price]*self.prediction_iteration
-        self.end_price *= (np.random.normal(self.hist_prices.pct_change(periods=self.days).mean(), 
-                                            self.hist_prices.pct_change(periods=self.days).std(), 
-                                            size = self.prediction_iteration)
-                                            +1)
+        print("Before Stock {}'s {} days mean return is {}. std is {} using past {} data".format(ticker, self.days, self.hist_prices.pct_change(periods=self.days).mean(), self.hist_prices.pct_change(periods=self.days).std(),period))
+        
+        #self.end_price *= (np.random.normal(self.hist_prices.pct_change(periods=self.days).mean(),  self.hist_prices.pct_change(periods=self.days).std(),  size = self.prediction_iteration) +1)
+        a = np.prod(np.random.normal(self.hist_prices.pct_change().mean(), self.hist_prices.pct_change().std(), size = [self.prediction_iteration, self.days]) +1, axis = 1)
+        self.end_price *= a
+        print("After Stock {}'s {} days mean return is {}. std is {} using past {} data".format(ticker, self.days, a.mean(), a.std(),period))
+        
         #print(self.end_price)
         self.plot_first_10 = 10
         self.iteration_table = pd.DataFrame(columns=["Low Weight", "Sharpe Ratio 1", "High Weight", "Sharpe Ratio 2"])
