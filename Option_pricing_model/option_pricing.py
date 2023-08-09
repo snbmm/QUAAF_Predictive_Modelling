@@ -11,16 +11,20 @@ import base64
 import io
 import warnings
 warnings.filterwarnings("ignore")
+import pytz
+
+ny_timezone = pytz.timezone('America/New_York')
+today = datetime.datetime.now(ny_timezone).date()
 
 def concave_curve(x, a, b, c):
     return a * x**2 + b * x + c
 
 def get_fridays(weeks = 10, format = "%Y-%m-%d"):
     fridays = []
-    date = datetime.date.today() + datetime.timedelta(days=(4-datetime.date.today().weekday()) % 7) # next Friday
-    if date == datetime.date.today():
+    date = today + datetime.timedelta(days=(4-today.weekday()) % 7) # next Friday
+    if date == today:
         date += datetime.timedelta(days = 7)
-    one_year_later = datetime.date.today() + datetime.timedelta(days=7*weeks)
+    one_year_later = today + datetime.timedelta(days=7*weeks)
 
     while date <= one_year_later:
         fridays.append(date.strftime(format))
@@ -53,7 +57,7 @@ def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf =
     date_list = get_fridays(weeks)
 
     t = np.array(date_list)   # 到期期限（以年为单位
-    #delta_t = [(lambda d: (datetime.datetime.strptime(d, date_format).date()- datetime.date.today()).days/365)(d)\
+    #delta_t = [(lambda d: (datetime.datetime.strptime(d, date_format).date()- today).days/365)(d)\
     #            for d in date_list]
 
     K = np.array([S*i/steps for i in range(int(0.5*steps), int(1.5*steps)+1)])   # 行权价格
@@ -71,7 +75,7 @@ def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf =
         except Exception as e:
             print(e)
             continue
-        delta_t.append((datetime.datetime.strptime(t[j], date_format).date()- datetime.date.today()).days/365)
+        delta_t.append((datetime.datetime.strptime(t[j], date_format).date()- today).days/365)
         iv[delta_t[-1]] = {'strike':[], 'sigma':[]}
         for idx in range(len(opt.strike.values)):
             opt_strike = opt.strike.values[idx]
@@ -147,7 +151,7 @@ class Option_Optimizor():
         self.t = np.array(get_fridays())
         #print(self.t)
         self.option_choice = option_choice
-        self.days  = np.busday_count(datetime.date.today(), datetime.datetime.strptime(self.t[option_choice], date_format).date())
+        self.days  = np.busday_count(today, datetime.datetime.strptime(self.t[option_choice], date_format).date())
         self.hist_prices = self.tick.history(period=period)['Close']
         self.current_price = self.tick.info['currentPrice']
         self.end_price = [self.current_price]*self.prediction_iteration
@@ -157,7 +161,7 @@ class Option_Optimizor():
         a = np.prod(np.random.normal(self.hist_prices.pct_change().mean(), self.hist_prices.pct_change().std(), size = [self.prediction_iteration, self.days]) +1, axis = 1)
         self.end_price *= a
         print("After Stock {}'s {} days mean return is {}. std is {} using past {} data".format(ticker, self.days, a.mean(), a.std(),period))
-        
+
         #print(self.end_price)
         self.plot_first_10 = 10
         self.iteration_table = pd.DataFrame(columns=["Low Weight", "Sharpe Ratio 1", "High Weight", "Sharpe Ratio 2"])
