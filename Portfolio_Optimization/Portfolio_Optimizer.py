@@ -101,14 +101,18 @@ class Portfolio_Optimizer():
         """
         a = self.data
         df = pd.DataFrame(a.values.dot(df_weights.T)).pct_change().dropna()
+        df_temp = pd.DataFrame(df.values, columns = ["Return"])
         VaR_90 = df.quantile(0.1).values[0]
         VaR_95 = df.quantile(0.05).values[0]
         VaR_99 = df.quantile(0.01).values[0]
+        ave_90 = df_temp[df_temp["Return"] <= VaR_90].mean().values[0]
+        ave_95 = df_temp[df_temp["Return"] <= VaR_95].mean().values[0]
+        ave_99 = df_temp[df_temp["Return"] <= VaR_99].mean().values[0]
         fig = plt.figure(figsize=(12, 7))
         plt.hist(df, bins=40)
-        plt.axvline(x=VaR_90, label = f'90% {VaR_90*100.:2f}%', linewidth = 2, linestyle = ':', color = 'red')
-        plt.axvline(x=VaR_95, label = f'95% {VaR_95*100.:2f}%', linewidth = 2, linestyle = '--', color = 'red')
-        plt.axvline(x=VaR_99, label = f'99% {VaR_99*100.:2f}%', linewidth = 2, linestyle = '-', color = 'red')
+        plt.axvline(x=VaR_90, label = f'90% {ave_90*100.:2f}%', linewidth = 2, linestyle = ':', color = 'red')
+        plt.axvline(x=VaR_95, label = f'95% {ave_95*100.:2f}%', linewidth = 2, linestyle = '--', color = 'red')
+        plt.axvline(x=VaR_99, label = f'99% {ave_99*100.:2f}%', linewidth = 2, linestyle = '-', color = 'red')
         plt.xlabel('Returns')
         plt.ylabel('Frequency')
         plt.title(label = f"Daily VaR of {tag}")
@@ -120,14 +124,18 @@ class Portfolio_Optimizer():
         plot_url_1 = base64.b64encode(img.getvalue()).decode()
 
         df = pd.DataFrame(a.values.dot(df_weights.T)).pct_change(periods=5).dropna()
+        df_temp = pd.DataFrame(df.values, columns = ["Return"])
         VaR_90 = df.quantile(0.1).values[0]
         VaR_95 = df.quantile(0.05).values[0]
         VaR_99 = df.quantile(0.01).values[0]
+        ave_90 = df_temp[df_temp["Return"] <= VaR_90].mean().values[0]
+        ave_95 = df_temp[df_temp["Return"] <= VaR_95].mean().values[0]
+        ave_99 = df_temp[df_temp["Return"] <= VaR_99].mean().values[0]
         fig = plt.figure(figsize=(12, 7))
         plt.hist(df, bins=40)
-        plt.axvline(x=VaR_90, label = f'90% {VaR_90*100.:2f}%', linewidth = 2, linestyle = ':', color = 'red')
-        plt.axvline(x=VaR_95, label = f'95% {VaR_95*100.:2f}%', linewidth = 2, linestyle = '--', color = 'red')
-        plt.axvline(x=VaR_99, label = f'99% {VaR_99*100.:2f}%', linewidth = 2, linestyle = '-', color = 'red')
+        plt.axvline(x=VaR_90, label = f'90% {ave_90*100.:2f}%', linewidth = 2, linestyle = ':', color = 'red')
+        plt.axvline(x=VaR_95, label = f'95% {ave_95*100.:2f}%', linewidth = 2, linestyle = '--', color = 'red')
+        plt.axvline(x=VaR_99, label = f'99% {ave_99*100.:2f}%', linewidth = 2, linestyle = '-', color = 'red')
         plt.xlabel('Returns')
         plt.ylabel('Frequency')
         plt.title(label = f"Weekly VaR of {tag}")
