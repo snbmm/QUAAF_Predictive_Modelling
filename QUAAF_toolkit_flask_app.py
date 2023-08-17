@@ -94,7 +94,7 @@ def operation_result():
 @Flask_App.route('/probailistic_valuator', methods=['GET'])
 def init_probailistic_valuator():
     """ Displays the probailistic_valuator page accessible at '/probailistic_valuator' """
-    print(Probabilistic_Valuator.get_default_risk_free_rate())
+    #print(Probabilistic_Valuator.get_default_risk_free_rate())
     try:
         default_beta = Probabilistic_Valuator.get_default_beta('AAPL')
     except Exception as e:
@@ -271,27 +271,45 @@ def option_result():
     if 'submitPo' in request.form:
         contractSymbol = request.form['contractSymbol']
         left_boundary = 0
-        right_boundary = 20
+        right_boundary = 5
     try:
         [plot, option_table] = option_pricing.get_iv_plot(sym = ticker_input, weeks = expiry_weeks, option_type = option_type,
-                                                           rf= rf_rate, trade_date = trade_date, curvefit_t = curvefit_t)
+                                                            rf= rf_rate, trade_date = trade_date, curvefit_t = curvefit_t)
         if 'submitPo' in request.form:
             option_week = option_pricing.get_option_week(contractSymbol, check_put = True)
             if option_week == -1:
                 raise Exception("Invalid contract Symbol {}, we can only build portfolio with PUT options within 10 weeks".format(contractSymbol))
             option_optimizor = Option_Optimizor(ticker_input, option_choice= option_week)
-            max_input = option_optimizor.find_max_input_recursive(left_boundary, right_boundary, option_symbols =[contractSymbol])
-            result1 = option_optimizor.option_sim(init_weight = 0, option_symbols =[contractSymbol])
-            result2 = option_optimizor.option_sim(init_weight = max_input, option_symbols =[contractSymbol])
+            max_input = option_optimizor.find_max_input_recursive(left_boundary, right_boundary, rf_rate = rf_rate, option_symbols =[contractSymbol])
+            result1 = option_optimizor.option_sim(init_weight = 0, option_symbols =[contractSymbol])['all_returns']
+            result2 = option_optimizor.option_sim(init_weight = max_input, option_symbols =[contractSymbol])['all_returns']
             #print(result2)
-            best_sharpe_ratio = result2['Sharpe Ratio']
-            original_sharpe_ratio = result1['Sharpe Ratio']
-            new_mean_return = result2['total_earn'][list(result2['total_earn'].keys())[0]]['Return Rate']
-            original_mean_return = result1['total_earn'][list(result1['total_earn'].keys())[0]]['Return Rate']
-            df = pd.DataFrame(option_optimizor.option_sim(allocation_iteration=50, option_symbols =[contractSymbol])['total_earn']).T
-            df['Sharpe Ratio'] = (df['Return Rate'] - rf_rate/100/250*option_optimizor.days) / df['Return Rate std']
+
+            df_compare = pd.DataFrame()
+            df_compare["Stock Only"] = result1
+            df_compare["Put option/Stock = {}".format(max_input)] = result2
+            df_compare.plot(kind='hist', bins=50, subplots= True, grid=True, rot = 0, layout=(1, 2), sharey=True,legend=True, figsize=(14,3))
+            img=io.BytesIO()
+            plt.savefig(img,format='png')
+            img.seek(0)
+            compare_plot = base64.b64encode(img.getvalue()).decode()
+
+            best_sharpe_ratio = (np.mean(result2)-rf_rate/252*option_optimizor.days)/np.std(result2)*np.sqrt(252/option_optimizor.days)
+            original_sharpe_ratio = (np.mean(result1)-rf_rate/252*option_optimizor.days)/np.std(result1)*np.sqrt(252/option_optimizor.days)
+            print("std = {}".format(np.std(result1)))
+            print("rf = {}".format(rf_rate/252*option_optimizor.days))
+            print("return = {}".format(np.mean(result1)))
+            new_mean_return = np.mean(result2)
+            original_mean_return = np.mean(result1)
+            df = pd.DataFrame(option_optimizor.option_sim(
+                allocation_iteration=min(50, round(max_input+2)*10),
+                init_weight = max_input,
+                option_symbols =[contractSymbol], 
+                iteration = 3000)['total_earn']
+                ).T
+            df['Sharpe Ratio'] = (df['Return Rate'] - rf_rate/252*option_optimizor.days) / df['Return Rate std']*np.sqrt(252/option_optimizor.days)
             #print(df.sort_values('Put Weight'))
-            figure, axis = plt.subplots(3, 1, figsize=(8, 9), sharex= True, constrained_layout = True)
+            figure, axis = plt.subplots(3, 1, figsize=(5, 8), sharex= True, constrained_layout = True)
             figure.supxlabel('Put option / stock ratio')
             df.plot.scatter(x = 'Put Weight', y = 'Return Rate', ax=axis[0])
             df.plot.scatter(x = 'Put Weight', y = 'Return Rate std', ax=axis[1])
@@ -317,8 +335,8 @@ def option_result():
                 po_calculation_success = False)
         elif 'submitPo' in request.form:
             borders = [{
-              'selector': 'td, th, table', 
-              'props'   : [ ('border', '1px solid lightgrey'), ('border-collapse', 'collapse'),('font-size', '0.5em')]
+                'selector': 'td, th, table', 
+                'props'   : [ ('border', '1px solid lightgrey'), ('border-collapse', 'collapse'),('font-size', '0.5em')]
             }]
             return render_template(
                 'option_analysis.html',
@@ -339,6 +357,7 @@ def option_result():
                 option_table = option_table,
                 iv_calculation_success = True,
                 po_calculation_success = True,
+                compare_plot_url = compare_plot,
                 port_plot_url = port_plot,
                 iteration_log = option_optimizor.iteration_table.style.set_table_styles(borders).render()
                 )
@@ -356,7 +375,7 @@ def option_result():
             iv_calculation_success = False,
             po_calculation_success = False,
             error= package(e)
-        )
+        ) 
 
 @Flask_App.route('/sentimental_analysis', methods=['GET'])
 def init_sentimental_analysis():

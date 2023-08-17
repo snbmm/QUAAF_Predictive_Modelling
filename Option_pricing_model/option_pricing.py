@@ -42,6 +42,7 @@ date_format = "%Y-%m-%d"
 
 def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf = yq.Ticker('^TNX').history(period='1y')['adjclose'][-1]/100, trade_date = 3, curvefit_t = 2):
 
+    print("Use get_iv_plot on {} at {}".format(sym, datetime.datetime.now()))
     # 获取标的资产历史价格数据
     borders = [{
               'selector': 'td, th, table', 
@@ -165,8 +166,9 @@ class Option_Optimizor():
         #print(self.end_price)
         self.plot_first_10 = 10
         self.iteration_table = pd.DataFrame(columns=["Low Weight", "Sharpe Ratio 1", "High Weight", "Sharpe Ratio 2"])
+        print("Use Option_Optimizor on {} at {}".format(ticker, datetime.datetime.now()))
 
-    def option_sim(self, init_weight = 0.0, allocation_iteration = 1, num_options_in_portfolio=1, option_symbols = []):
+    def option_sim(self, iteration = 10000, init_weight = 0.0, allocation_iteration = 1, num_options_in_portfolio=1, option_symbols = []):
         if option_symbols:
             df = self.tick.option_chain(self.t[self.option_choice]).puts
             #print(df['contractSymbol'])
@@ -184,7 +186,7 @@ class Option_Optimizor():
             total_earn[str(put_weight)] = {'Return Rate': 0, 'Return Rate std': 0}
             total_return = []
             #print('prediction_iteration {}'.format(self.prediction_iteration))
-            for i in range(self.prediction_iteration):
+            for i in range(min(self.prediction_iteration, iteration)):
                 cost = 0
                 earn = 0
                 #print(put_weight)
@@ -209,11 +211,11 @@ class Option_Optimizor():
             total_earn[str(put_weight)]['Return Rate std'] = np.std(total_return)
             total_earn[str(put_weight)]['Put Weight'] = put_weight[0]
             # set up next random allocation
-            put_weight = np.random.random(num_options_in_portfolio)*10
-        return {"total_earn":total_earn, "Sharpe Ratio":np.mean(total_return)/np.std(total_return)}
+            put_weight = np.random.random(num_options_in_portfolio)*(init_weight+2)
+        return {"total_earn":total_earn, "all_returns":total_return}
 
 
-    def find_max_input_recursive(self, left, right, option_symbols = [], tolerance=1e-2):
+    def find_max_input_recursive(self, left, right, rf_rate, option_symbols = [], tolerance=1e-1):
 
         if right - left < tolerance:
             return (left + right) / 2 
@@ -221,11 +223,14 @@ class Option_Optimizor():
         mid1 = (2 * left + right) / 3
         mid2 = (left + 2 * right) / 3
 
-        f_mid1 = self.option_sim(init_weight = mid1, option_symbols = option_symbols)['Sharpe Ratio']
-        f_mid2 = self.option_sim(init_weight = mid2, option_symbols = option_symbols)['Sharpe Ratio']
+        result1 = self.option_sim(init_weight = mid1, option_symbols = option_symbols)['all_returns']
+        result2 = self.option_sim(init_weight = mid2, option_symbols = option_symbols)['all_returns']
+        
+        f_mid1 = (np.mean(result1)-rf_rate/252*self.days)/np.std(result1)*np.sqrt(252/self.days)
+        f_mid2 = (np.mean(result2)-rf_rate/252*self.days)/np.std(result2)*np.sqrt(252/self.days)
         self.iteration_table.loc[len(self.iteration_table.index)] = [mid1, f_mid1, mid2, f_mid2] 
 
         if f_mid1 < f_mid2:
-            return self.find_max_input_recursive(mid1, right, option_symbols, tolerance)
+            return self.find_max_input_recursive(mid1, right, rf_rate, option_symbols, tolerance)
         else:
-            return self.find_max_input_recursive(left, mid2, option_symbols, tolerance)
+            return self.find_max_input_recursive(left, mid2, rf_rate, option_symbols, tolerance)

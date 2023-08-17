@@ -81,6 +81,7 @@
     <div class="row">
             <form method="post" action="{{ url_for('option_result') }}" id="calculator_form">
                 <div class="column" style="width: 46%; padding: 1% 2%" align="left">
+                    <h3>Step 1: Analyze options</h2>
                     <label for="Ticker">Ticker (Format: AAPL):</label>
                     <br/>
                     <input type="text" name="Ticker" id="Ticker" value={{default_ticker}}>
@@ -100,7 +101,7 @@
                     <br/>
                     <input type="number" step="any" name="rf_rate" id="rf_rate" value={{default_rfr}}>
                     <br/>
-                    <label for="trade_date">Consider trade within (days):</label>
+                    <label for="trade_date">Consider trade within (days, at least 1 business day should be included!):</label>
                     <br/>
                     <input type="number" name="trade_date" id="trade_date" value={{default_trade_date}}>
                     <br/>
@@ -108,15 +109,18 @@
                     <br/>
                     <input type="number" name="curvefit_t" id="curvefit_t" value={{default_curvefit_t}}>
                     <br/>
+                    <br/>
                     <input type="submit" name="submitIV" value="Analyse Options"  style = "font-size:15px"/>
                 </div>
                 {% if iv_calculation_success == True %}
                 <div class="column" style="width: 46%; padding: 1% 2%" align="left">
-                    <label for="contractSymbol">Build portfolio with contract Symbol</label>
+                    <h3>Step 2: Build portfolio with underlying stock and chosen put option</h2>
+                    <label for="contractSymbol">Option contract Symbol</label>
                     <br/>
                     <label for="contractSymbol"></label>(Format: AAPL230804P00205000, choose low IV put option.):</label>
                     <br/>
                     <input type="text" name="contractSymbol" id="contractSymbol" value={{default_contractSymbol}}>
+                    <br/>
                     <br/>
                     <input type="submit" name="submitPo" value="Build Portfolio"  style = "font-size:15px"/>
                 </div>
@@ -125,6 +129,13 @@
     </div>
         {% if iv_calculation_success == True %}
             {% if po_calculation_success == True %}
+            <br/>
+            <div class="row" style="background-color:#9cb3a2;" align="middle">
+            <h2>Return comparison between stock only and best stock/option ratio</h2>
+            <img src="data:image/png;base64,{{ compare_plot_url }}" class="responsive"/>
+            <br/>
+            <br/>
+            </div>
             <br/>
             <div class="row" style="background-color:#66ac6a;">
                 <div class="column" style="width: 46%; padding: 1% 2%" align="center">
@@ -141,6 +152,7 @@
                 <img src="data:image/png;base64,{{ port_plot_url }}" class="responsive" />
                 </div>
             </div>
+            <br/>
             {% endif %}
         
     <div class="row" style="background-color:#9cb3a2;">

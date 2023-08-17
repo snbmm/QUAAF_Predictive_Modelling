@@ -3,6 +3,7 @@ import pandas as pd
 import yfinance as yf
 import yahooquery as yq
 from datetime import date
+import datetime
 from dateutil.relativedelta import relativedelta
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
@@ -28,6 +29,7 @@ class Portfolio_Optimizer():
         self.data = yf.download(tickers = tickers, start = self.history_start_date.strftime('%Y-%m-%d'))['Adj Close']
         self.mean_returns = ppo.expected_returns.capm_return(self.data)
         self.cov_returns = ppo.risk_models.risk_matrix(self.data, method='ledoit_wolf')
+        print("Use Portfolio_Optimizer on {} at {}".format(tickers, datetime.datetime.now()))
     
     @staticmethod
     def get_default_risk_free_rate():
@@ -56,12 +58,12 @@ class Portfolio_Optimizer():
         """
         Return the mean and convirance of returns in portfolio
         """
-        print("Mean returns of each ticker")
+        # # print("Mean returns of each ticker")
         m_return = pd.DataFrame(self.mean_returns).T
         m_return.index = ["Return"]
-        display(m_return)
-        print("Risk Matrix")
-        display(self.cov_returns)
+        # display(m_return)
+        # # print("Risk Matrix")
+        # display(self.cov_returns)
         return {"mean returns": m_return, "returns covariance": self.cov_returns}
     
     def get_weight(self):
@@ -72,18 +74,18 @@ class Portfolio_Optimizer():
         ef_sr.max_sharpe(risk_free_rate = self.rf_rate)
         cleaned_weights_max_sharpe = ef_sr.clean_weights()
         df_cleaned_weights_max_sharpe = pd.DataFrame(cleaned_weights_max_sharpe, columns=cleaned_weights_max_sharpe.keys(), index=["Weight"])
-        print("Weight for best sharpe ratio based on data from {}".format(self.history_start_date))
-        display(df_cleaned_weights_max_sharpe)
+        # print("Weight for best sharpe ratio based on data from {}".format(self.history_start_date))
+        # display(df_cleaned_weights_max_sharpe)
         perf_max_sharpe = ef_sr.portfolio_performance(verbose=True, risk_free_rate = self.rf_rate)
-        print("\n")
+        # print("\n")
 
         ef_mv = EfficientFrontier(self.mean_returns, self.cov_returns)
         ef_mv.min_volatility()
         cleaned_weights_min_vol = ef_mv.clean_weights()
         df_cleaned_weights_min_vol = pd.DataFrame(cleaned_weights_min_vol, columns=cleaned_weights_min_vol.keys(), index=["Weight"])
-        print("Weight for minimum volatility based on data from {}".format(self.history_start_date))
-        print(cleaned_weights_min_vol.keys())
-        display(df_cleaned_weights_min_vol)
+        # print("Weight for minimum volatility based on data from {}".format(self.history_start_date))
+        # # print(cleaned_weights_min_vol.keys())
+        # display(df_cleaned_weights_min_vol)
         perf_min_vol = ef_mv.portfolio_performance(verbose=True, risk_free_rate = self.rf_rate)
 
         return {"Best Sharpe Ratio": {"Weights": df_cleaned_weights_max_sharpe, 

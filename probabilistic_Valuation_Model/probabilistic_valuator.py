@@ -2,6 +2,7 @@ import yahooquery as yq
 import yfinance as yf
 import pandas as pd
 import numpy as np
+import datetime
 import matplotlib.pyplot as plt
 import base64
 import io
@@ -35,6 +36,7 @@ class Probabilistic_Valuator():
         self.intang_as_da = intang_as_da
         [self.fundamentals, self.fundamentals_plot] = self.get_fundamentals(intang_as_da = self.intang_as_da)
         self.wacc = None
+        print("Use Probabilistic_Valuator on {} at {}".format(ticker, datetime.datetime.now()))
     
     @staticmethod
     def get_default_beta(ticker = 'AAPL'):
@@ -128,19 +130,19 @@ class Probabilistic_Valuator():
         risk_free_rate = self.risk_free_rates[-1]
         rfr_dist = [self.risk_free_rates.mean(), self.risk_free_rates.std()]
 
-        print("risk_free_rate: {}".format(risk_free_rate))
+        # print("risk_free_rate: {}".format(risk_free_rate))
 
         # Get the market return
         market_return = self.market_return
-        print("market_return: {}".format(market_return))
+        # print("market_return: {}".format(market_return))
 
         # Get the beta
         beta = self.beta
-        print("beta: {}".format(beta))
+        # print("beta: {}".format(beta))
 
         # Calculate the cost of equity using the CAPM
         cost_of_equity = risk_free_rate + beta * (market_return - risk_free_rate)
-        print("cost_of_equity: {}".format(cost_of_equity))
+        # print("cost_of_equity: {}".format(cost_of_equity))
 
         # Form a table for all the info needed to calculate WACC
         bs_list = ['periodType', 'TotalDebt']
@@ -170,37 +172,37 @@ class Probabilistic_Valuator():
 
         # Get the interest rate on Microsoft's debt
         interest_rate = info['interest_rate'][-1]
-        print("interest_rate: {}".format(interest_rate))
+        # print("interest_rate: {}".format(interest_rate))
 
         # Get the tax rate
         tax_rate = info['TaxRateForCalcs'][-1]
-        print("tax_rate: {}".format(tax_rate))
+        # print("tax_rate: {}".format(tax_rate))
 
         # Calculate the cost of debt
         cost_of_debt = interest_rate * (1 - tax_rate)
-        print("cost_of_debt: {}".format(cost_of_debt))
+        # print("cost_of_debt: {}".format(cost_of_debt))
 
         # Get the market capitalization
         market_cap = self.df_key_stats['marketCap']
-        print("market_cap: {}".format(market_cap))
+        # print("market_cap: {}".format(market_cap))
 
         # Get the total debt
         total_debt = info['TotalDebt'][-1]
-        print("total_debt: {}".format(total_debt))
+        # print("total_debt: {}".format(total_debt))
 
         # Calculate the weights of equity and debt in the capital structure
         equity_weight = market_cap / (market_cap + total_debt)
-        print("equity_weight: {}".format(equity_weight))
+        # print("equity_weight: {}".format(equity_weight))
         debt_weight = total_debt / (market_cap + total_debt)
-        print("debt_weight: {}".format(debt_weight))
+        # print("debt_weight: {}".format(debt_weight))
 
         # Calculate the WACC
         wacc = equity_weight * cost_of_equity + debt_weight * cost_of_debt
-        print("wacc: {}".format(wacc))
+        # print("wacc: {}".format(wacc))
 
-        # Print the results
-        print(f'WACC for {self.ticker}: {wacc:.2%}')
-        #print(f'Standard deviation of WACC for {ticker}: {wacc_std:.2%}')
+        # # print the results
+        # print(f'WACC for {self.ticker}: {wacc:.2%}')
+        ## print(f'Standard deviation of WACC for {ticker}: {wacc_std:.2%}')
 
         # WACC distribution
         wacc_list = [wacc]
@@ -275,7 +277,7 @@ class Probabilistic_Valuator():
         p_termial_v = 0
         TerMulSim_mean = 0
         if 'NetDebt' in self.df_bs and not np.isnan(self.df_bs['NetDebt'][-1]):
-            print(self.df_bs['NetDebt'][-1])
+            # print(self.df_bs['NetDebt'][-1])
             net_debt = self.df_bs['NetDebt'][-1]
         else:
             net_debt = self.df_bs['TotalDebt'][-1] - self.df_bs['CashAndCashEquivalents'][-1]
@@ -324,12 +326,12 @@ class Probabilistic_Valuator():
             equityValue = PV.sum() + PV_tV - net_debt
             v = equityValue / sharesOutstanding
             values.append(v)
-        print(Expected_g)
-        print(net_debt)
-        print(PV_tV)
-        print(PV.sum())
-        print(equityValue)
-        print(sharesOutstanding)
+        # print(Expected_g)
+        # print(net_debt)
+        # print(PV_tV)
+        # print(PV.sum())
+        # print(equityValue)
+        # print(sharesOutstanding)
 
         fig_df_result = df_result.T.plot(kind='bar',rot=45, colormap='jet',figsize=(12,6), subplots=True, layout=(2,2), legend = False, grid = True)
         plt.rcParams["figure.autolayout"] = True

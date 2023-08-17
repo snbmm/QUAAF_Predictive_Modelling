@@ -13,6 +13,7 @@ nltk.download('vader_lexicon')
 
 def get_setiments(tickers = ['NFLX','PTON','IDXX','HSY','PYPL']):
     
+    print("Use get_setiments on {} at {}".format(tickers, datetime.now()))
     web_url = 'https://finviz.com/quote.ashx?t='
     news_tables = {}
     for tick in tickers:
@@ -54,13 +55,13 @@ def get_setiments(tickers = ['NFLX','PTON','IDXX','HSY','PYPL']):
     scores = news_df['headline'].apply(vader.polarity_scores).tolist()
     scores_df = pd.DataFrame(scores)
     news_df = news_df.join(scores_df, rsuffix='_right')
-    print(news_df.head())
+    # print(news_df.head())
     mean_scores = news_df.groupby(['ticker','date']).mean()
     mean_scores = mean_scores.unstack()
 
     mean_scores = mean_scores.xs('compound', axis="columns").transpose().fillna(0)
     mean_scores.loc['Average'] = mean_scores.mean()
-    print(mean_scores)
+    # print(mean_scores)
 
     fig = mean_scores.plot(kind = 'bar', figsize=(12, 7), rot=0)
     plt.rcParams["figure.autolayout"] = True
