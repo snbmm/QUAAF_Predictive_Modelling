@@ -296,9 +296,6 @@ def option_result():
 
             best_sharpe_ratio = (np.mean(result2)-rf_rate/252*option_optimizor.days)/np.std(result2)*np.sqrt(252/option_optimizor.days)
             original_sharpe_ratio = (np.mean(result1)-rf_rate/252*option_optimizor.days)/np.std(result1)*np.sqrt(252/option_optimizor.days)
-            print("std = {}".format(np.std(result1)))
-            print("rf = {}".format(rf_rate/252*option_optimizor.days))
-            print("return = {}".format(np.mean(result1)))
             new_mean_return = np.mean(result2)
             original_mean_return = np.mean(result1)
             df = pd.DataFrame(option_optimizor.option_sim(

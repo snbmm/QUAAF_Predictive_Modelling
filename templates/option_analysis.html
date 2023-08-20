@@ -36,7 +36,7 @@
         }
         
     </style>
-    <title>Option Analysis (in progress)</title>
+    <title>Option Analysis (NEW)</title>
 </head>
 <body>
     <table width="100%">
@@ -48,7 +48,7 @@
                 </a>
             </td>
           <td width="40%" align="center" valign="bottom">
-            <h1 style="margin: 0;">Option Analysis (in progress)</h1>
+            <h1 style="margin: 0;">Option Analysis (NEW)</h1>
           </td>
           <td width="30%" align="right" valign="bottom">
             <form method="get" action="{{ url_for('main') }}" id="main">
@@ -93,7 +93,7 @@
                         <option value="put" {% if default_option_type == "put" %} selected {% endif %}>Put Option</option>
                     </select>
                     <br/>
-                    <label for="All call options expiry within (weeks):">All call options expiry within (weeks):</label>
+                    <label for="All options expiry within (weeks):">All options expiry within (weeks):</label>
                     <br/>
                     <input type="number" name="expiry" id="expiry" value={{default_expiry_weeks}}>
                     <br/>
@@ -123,6 +123,7 @@
                     <br/>
                     <br/>
                     <input type="submit" name="submitPo" value="Build Portfolio"  style = "font-size:15px"/>
+                    <h5> * Result is based on ask price (if available)</h5>
                 </div>
                 {% endif %}
             </form>
@@ -138,16 +139,22 @@
             </div>
             <br/>
             <div class="row" style="background-color:#66ac6a;">
-                <div class="column" style="width: 46%; padding: 1% 2%" align="center">
+                <div class="column" style="width: 46%; padding: 1% 2%" align="left">
                     <h2>Iteration table for best Sharpe Ratio</h2>
                     {{iteration_log|safe}}
                     <br/>
-                    <br/>
-                    <h3>Best put/stock ratio {{max_input}}</h3>
-                    <h3>Mean Return change from {{original_return}}% to {{new_return}}%</h3>
-                    <h3>Sharpe Ratio change from {{original_sharpe_ratio}} to {{best_sharpe_ratio}}</h3>
+                    {% if best_sharpe_ratio > original_sharpe_ratio %}
+                        <br/>
+                        <h3>Best put/stock ratio {{max_input}}</h3>
+                        <h3>Mean Return change from {{original_return}}% to {{new_return}}%</h3>
+                        <h3>Sharpe Ratio change from {{original_sharpe_ratio}} to {{best_sharpe_ratio}}</h3>
+                        <br/>
+                    {% else %}
+                        <h4 style='color:Red;'> * Failed to find the best put/stock ratio in the range of 5!</h4>
+                        <h4 style='color:Red;'> Plese try another option.</h4>
+                    {% endif %}
                 </div>
-                <div class="column" style="width: 46%; padding: 1% 2%" align="center">
+                <div class="column" style="width: 46%; padding: 1% 2%" align="left">
                     <h2>Portfolio with {{default_contractSymbol}}</h2>
                 <img src="data:image/png;base64,{{ port_plot_url }}" class="responsive" />
                 </div>
@@ -156,7 +163,7 @@
             {% endif %}
         
     <div class="row" style="background-color:#9cb3a2;">
-        <div class="column" style="width: 46%; padding: 1% 2%" align="center">
+        <div class="column" style="width: 46%; padding: 1% 2%" align="left">
             <h2>{{default_option_type}} option tables</h2>
             <label for="expiry_date">Expiry date:</label>
             <select name="expiry_date" id="expiry_date" onchange="openOptionTable(this)">
@@ -174,8 +181,9 @@
                         {{ option_table[t]|safe }}
                     </div>
             {% endfor %}
+            <h5>* IV is based with ask price.</h5>
         </div>
-        <div class="column" style="width: 46%; padding: 1% 2%" align="center">
+        <div class="column" style="width: 46%; padding: 1% 2%" align="left">
             <h2>{{default_ticker}} Option iv (did it smile?) </h2>
             <img src="data:image/png;base64,{{ plot_url }}" class="responsive" />
         </div>

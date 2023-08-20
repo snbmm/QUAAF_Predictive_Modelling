@@ -80,7 +80,7 @@ def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf =
         iv[delta_t[-1]] = {'strike':[], 'sigma':[]}
         for idx in range(len(opt.strike.values)):
             opt_strike = opt.strike.values[idx]
-            opt_price = opt.lastPrice.values[idx]
+            opt_price = opt.ask.values[idx]
             sigma = 0.2   # 初始波动率猜测值
             for k in range(100):
                 if option_type == 'put':
@@ -97,8 +97,15 @@ def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf =
             iv[delta_t[-1]]['sigma'].append(sigma)
         opt['IV'] = iv[delta_t[-1]]['sigma']
         opt['IV'].max()
-        opt['volume'] = opt['volume'].astype('int')
-        df_option_tables[t[j]] = opt[['contractSymbol','strike','lastPrice','inTheMoney','volume','IV']].style.hide_index().set_table_styles(borders).bar(subset=['volume'], color='#5fba7d').bar(subset=['IV'], color='#d65f5f', vmin = opt['IV'].min(), vmax = opt['IV'].max()).render()
+        opt['Vol'] = opt['volume'].astype('int')
+        formatdict = {
+            'strike': "${:,.2f}",
+            'lastPrice': "${:,.2f}",
+            'ask': "${:,.2f}",
+            'IV': "{:,.3f}"
+        }
+        display_table = opt[['contractSymbol','strike','lastPrice','ask','inTheMoney','Vol','IV']].style.hide_index().format(formatdict)
+        df_option_tables[t[j]] = display_table.set_table_styles(borders).bar(subset=['Vol'], color='#5fba7d').bar(subset=['IV'], color='#d65f5f', vmin = opt['IV'].min()/2, vmax = opt['IV'].max()).render()
 
     figure, axis = plt.subplots(len(delta_t), 1, figsize=(8, 3*len(delta_t)), sharex= True, constrained_layout = True)
     figure.supxlabel('Strike price $')
@@ -198,7 +205,10 @@ class Option_Optimizor():
                     #    print("Option info: last price: {} strike: {}".format(list(opt['lastPrice'])[j], list(opt['strike'])[j]))
                     #    print("Stock curent price: {}, end price: {}, option cost: {}, earn: {}.".format(self.current_price, self.end_price[i], cost, earn))
 
-                    cost += put_weight[j]*list(opt['lastPrice'])[j]
+                    if list(opt['ask'])[j]:
+                        cost += put_weight[j]*list(opt['ask'])[j]
+                    else:
+                        cost += put_weight[j]*list(opt['lastPrice'])[j]
                     earn += put_weight[j]* max(list(opt['strike'])[j] - self.end_price[i], 0)
                 #print(cost)
                 #print(earn)
