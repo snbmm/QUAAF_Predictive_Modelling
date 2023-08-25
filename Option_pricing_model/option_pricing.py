@@ -97,7 +97,7 @@ def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf =
             iv[delta_t[-1]]['sigma'].append(sigma)
         opt['IV'] = iv[delta_t[-1]]['sigma']
         opt['IV'].max()
-        opt['Vol'] = opt['volume'].astype('int')
+        opt['Vol'] = opt['volume'].astype('float')
         formatdict = {
             'strike': "${:,.2f}",
             'lastPrice': "${:,.2f}",
