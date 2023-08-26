@@ -121,6 +121,8 @@ def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf =
         #print(df_iv_k)
 
         # Remove outlier using curvefit
+        if df_iv_k.shape[0] <3:
+            break
         popt, pcov = curve_fit(concave_curve, df_iv_k['K'], df_iv_k['iv'])
         errors = np.abs(df_iv_k['iv'] - concave_curve(df_iv_k['K'], *popt))
         mad = np.median(errors)
