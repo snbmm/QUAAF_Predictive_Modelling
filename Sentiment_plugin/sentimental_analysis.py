@@ -42,7 +42,10 @@ def get_setiments(tickers = ['NFLX','PTON','IDXX','HSY','PYPL']):
             if len(date_scrape) == 1:
                 time = date_scrape[0]
             else:
-                dt = datetime.strptime(date_scrape[0], '%b-%d-%y').date()
+                if date_scrape[0] == 'Today':
+                    dt = date.today()
+                else:
+                    dt = datetime.strptime(date_scrape[0], '%b-%d-%y').date()
                 time = date_scrape[1]
 
             tick = file_name.split('_')[0]
