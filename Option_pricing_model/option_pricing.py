@@ -80,7 +80,11 @@ def get_iv_plot(sym = 'AAPL', steps = 100, option_type = 'call', weeks = 4, rf =
         iv[delta_t[-1]] = {'strike':[], 'sigma':[]}
         for idx in range(len(opt.strike.values)):
             opt_strike = opt.strike.values[idx]
-            opt_price = opt.ask.values[idx]
+            if (opt.ask.values[idx]>=0.00001):
+                opt_price = opt.ask.values[idx]
+            else:
+                opt_price = opt.lastPrice.values[idx]
+
             sigma = 0.2   # 初始波动率猜测值
             for k in range(100):
                 if option_type == 'put':
@@ -207,7 +211,7 @@ class Option_Optimizor():
                     #    print("Option info: last price: {} strike: {}".format(list(opt['lastPrice'])[j], list(opt['strike'])[j]))
                     #    print("Stock curent price: {}, end price: {}, option cost: {}, earn: {}.".format(self.current_price, self.end_price[i], cost, earn))
 
-                    if list(opt['ask'])[j]:
+                    if list(opt['ask'])[j] and list(opt['ask'])[j] > 0.00:
                         cost += put_weight[j]*list(opt['ask'])[j]
                     else:
                         cost += put_weight[j]*list(opt['lastPrice'])[j]
